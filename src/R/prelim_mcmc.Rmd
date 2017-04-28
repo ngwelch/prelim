@@ -1,0 +1,443 @@
+---
+title: "prelim_mcmc"
+author: "Nathan Welch"
+date: "3/29/2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, cache=FALSE}
+#library(mvtnorm)
+library(ggplot2)
+library(xtable)
+library(denstrip)
+library(dplyr)
+library(MASS)
+library(RColorBrewer)
+library(gridExtra)
+library(gridBase)
+library(grid)
+library(raster)
+#rmarkdown::render()
+```
+
+## Chain Evaluation
+```{r}
+results = read.table(file="~/prelim/data/mcmc_chain.txt")
+accept_results = read.table(file="~/prelim/data/mcmc_performance_summary.txt")
+number_of_trials = nrow(results)
+```
+
+```{r}
+ggplot(results) + geom_path(aes(x=1:number_of_trials, y=mu))+theme_bw()
+```
+
+```{r}
+ggplot(results) + geom_path(aes(x=1:number_of_trials, y=theta))+theme_bw()
+```
+
+```{r}
+ggplot(results) + geom_path(aes(x=1:number_of_trials, y=sigma))+theme_bw()
+```
+## Figure Reproduction
+
+```{r}
+# Data Cleanup
+df = read.table("/Users/nwelch/prelim/data/canedata.txt")
+
+names(df) = c("x","y", paste0("t", 1:6))
+
+df[df$x==10.2,"x"] = 10.5
+
+everInfected = as.logical(df$t6)
+
+dfNeverInfected = df[!everInfected,]
+tmp = df[everInfected,]
+
+theorder = order(tmp$t1, tmp$t2, tmp$t3, tmp$t4, tmp$t5, tmp$t6, decreasing=TRUE)
+
+dfInfected = tmp[theorder,]
+
+df = rbind(dfNeverInfected, dfInfected)
+rownames(df) = seq(1, nrow(df), 1)
+
+write.table(df, file="/Users/nwelch/prelim/data/canedataP.txt")
+
+# Infection Metrics
+cumInfected = c(0, apply(df[,-(1:2)], 2, sum))
+timeInspected = c(0, 6, 10, 14, 19, 23, 30)
+inspectionGap = c(0, diff(timeInspected))
+
+midInspection = (timeInspected - inspectionGap/2)[-1]
+infectedIndicator = dfInfected[dfInfected$t6==1, 3:8]
+tmp = mapply('*', infectedIndicator, midInspection)
+
+notZeroFunc = function(r){
+  notZero = r[r>0] 
+  min(notZero)
+}
+
+tau = apply(tmp, 1, notZeroFunc)
+
+tauUpperBoundTmp = mapply('*', infectedIndicator, timeInspected[-1])
+tauUpperBound = apply(tauUpperBoundTmp, 1, notZeroFunc)
+
+whichZeroFunc = function(r){
+  notZero = r[r>0] 
+  minNotZero = min(notZero)
+  which(r==minNotZero)
+}
+
+tauLowerBoundIndex = apply(tauUpperBoundTmp, 1, whichZeroFunc)
+getMinTime = function(i) timeInspected[i]
+tauLowerBound = sapply(tauLowerBoundIndex, getMinTime)
+
+infectionData = cbind(dfInfected, tau, tauLowerBound, tauUpperBound)
+
+
+write.table(infectionData, file="/Users/nwelch/prelim/data/infectionData.txt")
+
+infectedDist = pointDistance(dfInfected[,c('x', 'y')], longlat=FALSE)
+write.csv(infectedDist, file="/Users/nwelch/prelim/data/infectedDistances.txt")
+```
+
+# Create Test Data Set
+The following codes create a test set that is a small sample of the data from the field. The ideas is that this data offers a reasonably computable sample that should lead us to somewhat reasonable estimates of the full data set parameter values. 
+```{r}
+tmp = cbind(dfNeverInfected, NA, NA, NA)
+names(tmp)[9:11] = c('tau', 'tauLowerBound', 'tauUpperBound')
+tmp = rbind(tmp, infectionData)
+origOrder = order(tmp$x, tmp$y)
+tmp = tmp[origOrder,]
+testPlants = which((tmp$x <= 5) & (tmp$y <= 10))
+testSquare = tmp[testPlants,]
+testInfected = testSquare[testSquare$t6==1,]
+
+write.csv(testInfected, file="/Users/nwelch/prelim/data/infectionDataTest.csv",
+          row.names=FALSE)
+
+testInfectedDist = pointDistance(testInfected[,c('x', 'y')], longlat=FALSE)
+write.csv(testInfectedDist, 
+            file="/Users/nwelch/prelim/data/infectedDistancesTest.csv",
+          row.names=FALSE)
+```
+
+```{r}
+testdf = df[1:5,-(6:8)]
+testdf[3, 't3'] = 1
+testdf[4, c('t2', 't3')] = 1
+testdf[5, c('t1', 't2', 't3')] = 1
+write.table(testdf, file="/Users/nwelch/prelim/data/testcanedata.txt")
+
+testDistances = pointDistance(testdf[,c('x', 'y')], longlat=FALSE)
+write.csv(testDistances, file="/Users/nwelch/prelim/data/testPlantDistances.csv",
+          row.names=FALSE)
+```
+
+# Plots
+
+```{r, echo=FALSE}
+fig1.1 = ggplot(data=df, aes(x, y, color=factor(t6)), legend=FALSE) + 
+  geom_point() + 
+  scale_colour_manual(values = c("0"="grey", "1"="black"), guide=FALSE) +
+  theme_bw() +
+  theme(axis.line = element_line(colour='black'),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank())+
+  xlab("")+
+  ylab("")
+```
+
+```{r, echo=FALSE}
+
+infectionDf = data.frame(cumInfected, inspectionGap)
+rownames(infectionDf)[1]="t0"
+
+tmp = apply(infectionDf, 1, function(x) rep(x[1], x[2]))
+infectedSeries = unlist(tmp, use.names=FALSE)
+
+week = seq(1, length(infectedSeries), 1)
+
+expandedInfectionDf = data.frame(week, infectedSeries)
+```
+
+```{r, echo=FALSE}
+fig1.2 = ggplot(data=expandedInfectionDf, 
+                aes(week, infectedSeries), legend=FALSE) + 
+  geom_step() +
+  theme_bw() +
+  theme(axis.line = element_line(colour='black'),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank())+
+  xlab("Weeks")+
+  ylab("Number infected")
+```
+
+```{r}
+g = grid.arrange(fig1.1, fig1.2, ncol=2)
+g
+ggsave(filename="/Users/nwelch/prelim/figures/figure_1.png", g, 
+       dpi=300, height=4, width=6)
+```
+
+```{r, echo=FALSE}
+theta = c(28.15, 25.08, 2.38, 1.07, 261.58, 16.65)
+mu = c(14.27, 12.57, 0.25, 1.07, 253.65, 0.35)
+tau = c(160.92, 29.99, 10.18, 1.76, 122.81, 2.15)
+sigma = c(28.99, 25.17, 12.31, 1.13, 263.19, 16.80)
+
+tmp = data.frame(theta, mu, tau, sigma)
+rownames(tmp) = c('Basic', 'Parallel', 'Improved', 'Truncated', 
+                'Basic Discrete', 'Truncated Discrete')
+
+performance = as.data.frame(cbind(tmp, rowSums(tmp)))
+names(performance)[5]='Total'
+```
+
+```{r results = 'asis', echo=FALSE}
+addtorow <- list()
+addtorow$pos <- list(-1)
+addtorow$command <- c("Algorithm & \\multicolumn{5}{c}{Times for Updating the Following Parameters} \\\\\n") 
+
+tmp = performance
+
+colnames(tmp) = c("$\\theta$", "$\\mu$", "$\\tau$", "$\\sigma$", "Total")
+tmp = xtable(tmp, caption = "Table with xtable")
+
+print(tmp, add.to.row = addtorow, hline.after=c(-1, 0, nrow(tmp)),
+      sanitize.colnames.function = function(x) {x})
+```
+
+```{r, echo=FALSE}
+prior = rnorm(1000)
+trunc = rnorm(1000, 2)
+full = rnorm(1000, 2.25)
+
+thewidth=0.5
+thexlim = c(-5, 5)
+plot(NA, xlim=thexlim, ylim=c(0,3),
+		xlab=expression(mu), yaxt="n", ylab="")
+axis(2, at=c(0.5, 1.5, 2.5), labels=c("Full", "Trunc", "prior"), las=2)
+	
+denstrip(prior, horiz=T, at=2.5,
+		ticks=quantile(prior, probs=c(0.025, 0.5, 0.975)), width=thewidth)
+
+denstrip(trunc, horiz=T, at=1.5, 
+		ticks=quantile(trunc, probs=c(0.025, 0.5, 0.975)), width=thewidth)
+
+denstrip(full, horiz=T, at=0.5, 
+		ticks=quantile(full, probs=c(0.025, 0.5, 0.975)), width=thewidth)
+```
+
+```{r}
+tmp = mvrnorm(n=10000, mu=c(1, 2), Sigma=matrix(c(10, 1, 1, 2), 2, 2))
+normdf = as.data.frame(tmp)
+colnames(normdf) = c("sigma", "mu")
+```
+
+```{r}
+ci = sort(c(0.5, 0.8, 0.95), decreasing=TRUE)
+
+ci_contours = function(x, y) {
+  kernelHat = kde2d(x, y, n=200)
+  kernelHatPdf = kernelHat$z
+  ordering = order(kernelHatPdf, decreasing=TRUE)
+  sumKernelHat = cumsum(kernelHatPdf[ordering])
+  cdfHat = sumKernelHat/max(sumKernelHat)
+  
+  getCdfCutoff = function(a) kernelHatPdf[ ordering[ max( which( cdfHat < a) ) ] ]
+  lvls = sapply(ci, getCdfCutoff)
+  
+  contourList = contourLines(kernelHat, levels=lvls)
+  contourDataFrame = lapply(contourList, data.frame)
+  
+  return(contourDataFrame)
+}
+
+```
+
+```{r, echo=FALSE}
+contours = ci_contours(normdf$sigma, normdf$mu)
+
+fig2b = ggplot(data=normdf, aes(sigma, mu)) + 
+  geom_point(color='grey') +
+  geom_path(aes(x, y), data=contours[[1]]) +
+  geom_path(aes(x, y), data=contours[[2]]) +
+  geom_path(aes(x, y), data=contours[[3]]) +
+  theme(axis.line = element_line(color='black'),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank()) 
+```
+
+```{r}
+#Create figure window and layout
+plot.new()
+grid.newpage()
+pushViewport(viewport(layout = grid.layout(2, 1)))
+
+#Draw bsae plot
+pushViewport(viewport(layout.pos.row = 1))
+par(mar=c(3,3.5,1,1), fig = gridFIG(), new = TRUE)
+plot(NA, xlim=thexlim, ylim=c(0,3),
+		xlab=expression(mu), col.axis='darkgrey', yaxt="n", ylab="")
+axis(2, at=c(0.5, 1.5, 2.5), labels=c("Full", "Trunc", "prior"), las=2)
+denstrip(prior, horiz=T, at=2.5,
+		ticks=quantile(prior, probs=c(0.025, 0.5, 0.975)), width=thewidth)
+denstrip(trunc, horiz=T, at=1.5, 
+		ticks=quantile(trunc, probs=c(0.025, 0.5, 0.975)), width=thewidth)
+denstrip(full, horiz=T, at=0.5, 
+		ticks=quantile(full, probs=c(0.025, 0.5, 0.975)), width=thewidth)
+popViewport()
+
+#Draw ggplot
+pushViewport(viewport(layout.pos.row = 2))
+print(fig2b, newpage = FALSE)
+popViewport()
+```
+
+```{r}
+n=100
+x = seq(0, 30, 30/n)
+
+get_density = function(i){
+  smpl = rnorm(n+1)
+  pdf = dnorm(smpl)
+  tmp = cumsum(pdf)
+  cdf = tmp/tail(tmp, 1)
+  return(data.frame(i, x, cdf))
+}
+
+tmp = lapply(1:100, get_density)
+pdfs = plyr::ldply(tmp, data.frame)
+
+p = ggplot(legend=FALSE) + 
+  xlab("week") + 
+  ylab("density") + 
+  theme(axis.line = element_line(color='black'),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank()) 
+
+fig3a = p + xlim(0,5) + ylim(0,0.25) + 
+  geom_path(data=pdfs[pdfs$i==1,], aes(x,cdf)) +
+  geom_path(data=pdfs[pdfs$i==2,], aes(x,cdf), color='darkgray') +
+  geom_path(data=pdfs[pdfs$i==3,], aes(x,cdf), color='gray') +
+  geom_path(data=pdfs[pdfs$i==4,], aes(x,cdf), color='darkgrey', 
+            linetype = "longdash") +
+  geom_path(data=pdfs[pdfs$i==5,], aes(x,cdf), color='grey', 
+            linetype = "longdash") +
+  geom_path(data=pdfs[pdfs$i==6,], aes(x,cdf))
+
+fig3b = p + xlim(24,30) + ylim(0.75, 1) + 
+  geom_path(data=pdfs[pdfs$i>6,], aes(x,cdf), color='gray') +
+  geom_path(data=pdfs[pdfs$i==1,], aes(x,cdf)) +
+  geom_path(data=pdfs[pdfs$i==2,], aes(x,cdf), color='darkgray') +
+  geom_path(data=pdfs[pdfs$i==3,], aes(x,cdf), color='gray') +
+  geom_path(data=pdfs[pdfs$i==4,], aes(x,cdf), color='darkgrey', 
+            linetype = "longdash") +
+  geom_path(data=pdfs[pdfs$i==5,], aes(x,cdf), color='grey', 
+            linetype = "longdash") +
+  geom_path(data=pdfs[pdfs$i==6,], aes(x,cdf))
+
+```
+
+```{r, warning=FALSE}
+grid.arrange(fig3a, fig3b, ncol=2)
+```
+
+```{r}
+n=100
+x = seq(0, 30, 30/n)
+
+set.seed(1234)
+
+go_walk = function( i=1, n=30, lmda=1, a0=0 ){
+  # This creates the random walk and saves the value of the last poistion in Sn.
+  X = rpois(n, lambda=lmda)
+  S = c(a0, a0 + cumsum( X ))
+  sim = rep(i, n+1)
+  week = seq(0, n, 1)
+  out = data.frame(week, S, sim)
+  return(out)
+}
+
+tmp = lapply(1:100, go_walk)
+simInfection = plyr::ldply(tmp, data.frame)
+
+tmp = lapply(split(simInfection$S, simInfection$week), 
+                        function(i) quantile(i, c(0.025, 0.5, 0.975)))
+simInfectionCI = plyr::ldply(tmp)
+colnames(simInfectionCI) = c('week', 'lower', 'med', 'upper')
+simInfectionCI$week  = as.numeric(simInfectionCI$week)
+
+p = ggplot(legend=FALSE) + 
+  xlab("week") + 
+  ylab("density") + 
+  xlim(0,30)+
+  theme(axis.line = element_line(color='black'),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        panel.background = element_blank()) 
+
+fig4a = p + geom_path(data=simInfection, aes(week, S), colour='darkgray') +
+  geom_path(data=simInfectionCI, aes(week, lower), color='black') +
+  geom_path(data=simInfectionCI, aes(week, med), color='black') +
+  geom_path(data=simInfectionCI, aes(week, upper), color='black') +
+  geom_vline(xintercept=timeInspected, color='grey', linetype = "longdash")
+
+fig4b = p + geom_path(data=simInfection, aes(week, S), colour='darkgray') +
+  geom_path(data=simInfectionCI, aes(week, lower), color='black') +
+  geom_path(data=simInfectionCI, aes(week, med), color='black') +
+  geom_path(data=simInfectionCI, aes(week, upper), color='black')
+
+fig4c = p + geom_path(data=simInfection, aes(week, S^(0.534)-week),
+                      colour='darkgray') +
+  geom_path(data=simInfectionCI, aes(week, lower^(0.534)-week), color='black') +
+  geom_path(data=simInfectionCI, aes(week, med^(0.534)-week), color='black') +
+  geom_path(data=simInfectionCI, aes(week, upper^(0.534)-week), color='black') +
+  geom_vline(xintercept=timeInspected, color='grey', linetype = "longdash")
+
+fig4d = p + geom_path(data=simInfection, aes(week, S^(0.534)-week),
+                      colour='darkgray') +
+  geom_path(data=simInfectionCI, aes(week, lower^(0.534)-week), color='black') +
+  geom_path(data=simInfectionCI, aes(week, med^(0.534)-week), color='black') +
+  geom_path(data=simInfectionCI, aes(week, upper^(0.534)-week), color='black')
+```
+
+```{r, warning=FALSE}
+grid.arrange(fig4a, fig4b, fig4c, fig4d, ncol=2, nrow=2)
+```
+
+```{r, echo=FALSE}
+N = nrow(df)
+density = dnorm(rnorm(N))
+density[(N-5):N] = seq(0.8, 1.0, 0.2/5)
+bin = cut(density, breaks=c(0, 0.2, 0.8, 0.99, 1.0))
+#tmp = factor(bin, labels=c(2,1,0))
+prediction = data.frame(df[,c("x", "y")], density)
+
+
+fig5 = ggplot(data=prediction, aes(x, y, color=bin), legend=FALSE) + 
+  geom_point() + 
+  scale_colour_manual(values = c("(0,0.2]"="white", 
+                                 "(0.2,0.8]"="gray80",
+                                 "(0.8,0.99]"="gray60",
+                                 "(0.99,1]"="black"), guide=FALSE) +
+  theme_bw() +
+  theme_void() 
+```
+
+```{r, warning=FALSE}
+grid.arrange(fig5, fig5, fig5, fig5, ncol=4)
+```
