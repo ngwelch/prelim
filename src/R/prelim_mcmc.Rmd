@@ -125,18 +125,6 @@ write.csv(testInfectedDist,
           row.names=FALSE)
 ```
 
-```{r}
-testdf = df[1:5,-(6:8)]
-testdf[3, 't3'] = 1
-testdf[4, c('t2', 't3')] = 1
-testdf[5, c('t1', 't2', 't3')] = 1
-write.table(testdf, file="/Users/nwelch/prelim/data/testcanedata.txt")
-
-testDistances = pointDistance(testdf[,c('x', 'y')], longlat=FALSE)
-write.csv(testDistances, file="/Users/nwelch/prelim/data/testPlantDistances.csv",
-          row.names=FALSE)
-```
-
 # Plots
 
 ```{r, echo=FALSE}

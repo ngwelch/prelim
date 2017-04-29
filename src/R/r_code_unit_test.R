@@ -1,8 +1,8 @@
 library(RUnit)
-source('~/prelim/prelim_src/likelihood_functions.R')
+source('~/prelim/src/R/likelihood_functions.R')
 
-testdata = read.table("/Users/nwelch/prelim/data/testcanedata.txt")
-testdist = read.table("/Users/nwelch/prelim/data/testPlantDistances.txt")
+testdata = read.csv(file="/Users/nwelch/prelim/data/infectionDataTest.csv")
+testdist = read.csv(file="/Users/nwelch/prelim/data/infectedDistancesTest.csv")
 
 #priors
 mu_a=0.7; mu_b=0.004
@@ -110,3 +110,7 @@ tau_helper_4_decrease = getSumIntervalAboveTauStar(iStar=1, tauiStar=5,
 tau_helper_4_decrease2 = getSumIntervalAboveTauStar(iStar=1, tauiStar=8, 
                                                    mu=u, tau=t, theta=th, 
                                                    sigma=s, dst=testdist)
+tau_increase = llRatio_tau(tau=t, tauiStar=t[1]+0.5, iStar=1, mu=u, 
+                           theta=th, sigma=s, dst=testdist, Tlast=tl)
+tau_decrease = llRatio_tau(tau=t, tauiStar=t[1]-0.5, iStar=1, mu=u, 
+                           theta=th, sigma=s, dst=testdist, Tlast=tl)
