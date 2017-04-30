@@ -125,7 +125,6 @@ llRatio_theta = function(theta, thetaStar, mu, tau, sigma, dst,
   logPrior = log(dgamma(theta, shape=theta_a, scale=theta_b))
   
   dll = dllTerm1 + dllTerm2 + dllTerm3 + logPriorStar - logPrior
-  print(c(dllTerm1, dllTerm2, dllTerm3, logPriorStar, logPrior))
   return(dll)
 }
 
@@ -196,7 +195,6 @@ llRatio_tau = function(tau, tauiStar, iStar, mu, theta, sigma, dst, Tlast=30){
   
   dll = dllTerm1 + dllTerm2 + dllTerm3 + dllTerm4 + dllTerm5 + 
   	dllTerm6 - dllTerm7 
-  print(c(dllTerm1, dllTerm2, dllTerm3, dllTerm4, dllTerm5, dllTerm6, dllTerm7))
   return(dll)
 }
 

@@ -1,14 +1,14 @@
 library(dplyr)
 library(MASS)
-library(profr)
+#library(profr)
 
-source('~/prelim/prelim_src/likelihood_functions.R')
+source('~/prelim/src/R/likelihood_functions.R')
 
 # TEST!
-df = read.table(file="~/prelim/data/infectionDataTest.txt")
-dst = read.table(file="~/prelim/data/infectedDistancesTest.txt")
+df = read.csv(file="/Users/nwelch/prelim/data/infectionDataTest.csv")
+dst = read.csv(file="/Users/nwelch/prelim/data/infectedDistancesTest.csv")
 
-trials = 1000
+trials = 100
 infectionCount = sum(df$t6)
 chain = matrix(NA, nrow=trials, ncol=(3+infectionCount))
 
@@ -18,9 +18,9 @@ theta_a=0.8; theta_b=10
 sigma_a=0.5; sigma_b=100
 
 # initial values
-theta = 0.105#theta_a*theta_b
-sigma = 1.15#sigma_a*sigma_b
-mu = 0.003#mu_a*mu_b
+theta = theta_a*theta_b #0.105
+sigma = sigma_a*sigma_b #1.15
+mu = mu_a*mu_b #0.003
 tau = t(df$tau)
 chain[1,] = c(tau, theta, sigma, mu)
 colnames(chain) = c(paste0("t", 1:infectionCount), "theta", "sigma", "mu")
@@ -36,7 +36,7 @@ for(r in 2:trials){
   mu = chain[r-1, "mu"]
   sigma = chain[r-1, "sigma"]
   
-  logU = log( runif(infectionCount+3))
+  logU = log( runif(infectionCount+3) )
   
   thetaStar = rnorm(1, mean=theta, sd=0.005)
   if(thetaStar>0){
@@ -61,7 +61,7 @@ for(r in 2:trials){
     }
   }
   
-  sigmaStar = rnorm(1, mean=sigma, sd=0.0005)
+  sigmaStar = rnorm(1, mean=sigma, sd=0.05)
   if(sigmaStar>0){
     logLRatio_sigma = llRatio_sigma(sigma=sigma, sigmaStar=sigmaStar, 
     								mu=mu, tau=tau, theta=theta, dst=dst)
@@ -74,7 +74,7 @@ for(r in 2:trials){
   
   for(i in 1:infectionCount){
     iStar=i
-    tauiStar = rnorm(1, mean=tau[i], sd=0.0005)
+    tauiStar = rnorm(1, mean=tau[i], sd=1)
     lowerBound = df$tauLowerBound[i]
     upperBound = df$tauUpperBound[i]
     
@@ -94,7 +94,7 @@ for(r in 2:trials){
 )
 
 chain = chain[complete.cases(chain),]
-write.table(chain, file="~/prelim/data/mcmc_chain.txt")
+write.table(chain, file="~/prelim/data/mcmc_chain_R.txt")
 
 accept_count[c('user', 'system', 'elapsed')] = summary(t)
-write.table(accept_count, file="~/prelim/data/mcmc_performance_summary.txt")
+write.table(accept_count, file="~/prelim/data/mcmc_performance_summary_R.txt")
