@@ -98,10 +98,12 @@ tauLowerBound = sapply(tauLowerBoundIndex, getMinTime)
 infectionData = cbind(dfInfected, tau, tauLowerBound, tauUpperBound)
 
 
-write.table(infectionData, file="/Users/nwelch/prelim/data/infectionData.txt")
+write.csv(infectionData, file="/Users/nwelch/prelim/data/infectionData.csv", 
+          row.names=FALSE)
 
 infectedDist = pointDistance(dfInfected[,c('x', 'y')], longlat=FALSE)
-write.csv(infectedDist, file="/Users/nwelch/prelim/data/infectedDistances.txt")
+write.csv(infectedDist, file="/Users/nwelch/prelim/data/infectedDistances.csv", 
+          row.names=FALSE)
 ```
 
 # Create Test Data Set
