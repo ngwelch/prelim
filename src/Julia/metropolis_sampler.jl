@@ -13,7 +13,6 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
     
     #setup 
     infectionCount = sum(df[:t6]);
-    chain = Matrix(trials, (3+infectionCount));
     accept = fill(0, 4);
     accept[4] = trials;
 
@@ -31,6 +30,7 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
     tauLowerBound = df[:tauLowerBound];
     tauUpperBound = df[:tauUpperBound];
 
+    chain = Array{Float64}(trials, (3+infectionCount));
     chain[1,1:infectionCount] = copy(tau[infectionIndex]);
     chain[1,(infectionCount+1):(infectionCount+3)] = copy([mu sigma theta]);
 
@@ -39,6 +39,7 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
     for r=2:trials
     
         tau[infectionIndex] = copy(chain[r-1, 1:infectionCount])
+        tau = convert(Array, tau)
         mu = copy(chain[(r-1), (infectionCount+1)])
         sigma = copy(chain[(r-1), (infectionCount+2)])
         theta = copy(chain[(r-1), (infectionCount+3)])
@@ -109,8 +110,8 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
         #tau update
         tau_start = now()
         gaussian_tau = Normal(mu, sigma)
-        index=1
-        for iStar=infectionIndex
+        sharedTau = convert(SharedArray, tau)
+        @parallel for iStar=infectionIndex
         
             J_taui = Normal(tau[iStar], 1)
             tauiStar = rand(J_taui, 1)[1]
@@ -122,16 +123,15 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
                 logLRatio_tau = llRatio_tau(tau, tauiStar, iStar,
                                                  mu, theta, sigma, 
                                                  gaussian_tau, dst)
-
+                index = iStar-firstInfection+1
                 if logU[(index+3)] < logLRatio_tau
-                    tau[iStar] = copy(tauiStar)
+                    sharedTau[iStar] = copy(tauiStar)
                 end
             end
-            index+=1
         end
         tau_time = tau_time + (now() - tau_start);
         
-        chain[r,1:infectionCount] = copy(tau[infectionIndex]);
+        chain[r,1:infectionCount] = copy(sharedTau[infectionIndex]);
         chain[r,(infectionCount+1):(infectionCount+3)] = copy([mu sigma theta]);
     end
 
@@ -150,7 +150,7 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
     names!(chainDF, chainColNames);
 
     writetable("/Users/nwelch/prelim/data/mcmc_chain_metrics_julia.csv", 
-        chainDF, separator = ',', header = true);
+        metrics, separator = ',', header = true);
 
     writetable("/Users/nwelch/prelim/data/mcmc_chain_julia.csv", 
         chainDF, separator = ',', header = true);
