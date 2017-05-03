@@ -1,8 +1,8 @@
 library(RUnit)
 source('~/prelim/src/R/likelihood_functions.R')
 
-testdata = read.csv(file="/Users/nwelch/prelim/data/infectionDataTest.csv")
-testdist = read.csv(file="/Users/nwelch/prelim/data/infectedDistancesTest.csv")
+testdata = read.csv(file="/Users/nwelch/prelim/data/plantDataTest.csv")
+testdist = read.csv(file="/Users/nwelch/prelim/data/plantDistanceTest.csv")
 
 #priors
 mu_a=0.7; mu_b=0.004
