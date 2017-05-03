@@ -9,8 +9,8 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
                               sigma_a=0.5, sigma_b=100.0,
                               theta_a=0.8, theta_b=10.0)
 
-    include("/Users/nwelch/prelim/src/Julia/likelihood_functions.jl");
-    
+    @everywhere include("/Users/nwelch/prelim/src/Julia/likelihood_functions.jl");
+
     #setup 
     infectionCount = sum(df[:t6]);
     accept = fill(0, 4);
@@ -26,7 +26,7 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
     lastInfection = length(df[:tau]);
     infectionIndex = firstInfection:lastInfection;
 
-    tau = copy(df[:tau]);
+    tau = convert(Array, copy(df[:tau]));
     tauLowerBound = df[:tauLowerBound];
     tauUpperBound = df[:tauUpperBound];
 
@@ -39,7 +39,6 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
     for r=2:trials
     
         tau[infectionIndex] = copy(chain[r-1, 1:infectionCount])
-        tau = convert(Array, tau)
         mu = copy(chain[(r-1), (infectionCount+1)])
         sigma = copy(chain[(r-1), (infectionCount+2)])
         theta = copy(chain[(r-1), (infectionCount+3)])
@@ -110,28 +109,28 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
         #tau update
         tau_start = now()
         gaussian_tau = Normal(mu, sigma)
-        sharedTau = convert(SharedArray, tau)
-        @parallel for iStar=infectionIndex
+        curTau = copy(tau)
+        tau = convert(SharedArray, tau)
+        @sync @parallel for iStar=infectionIndex
         
             J_taui = Normal(tau[iStar], 1)
             tauiStar = rand(J_taui, 1)[1]
 
             lowerBound = tauLowerBound[iStar]
             upperBound = tauUpperBound[iStar]
-        
+            
             if (tauiStar<upperBound) & (tauiStar>lowerBound)
-                logLRatio_tau = llRatio_tau(tau, tauiStar, iStar,
-                                                 mu, theta, sigma, 
-                                                 gaussian_tau, dst)
+                logLRatio_tau = llRatio_tau(curTau, tauiStar, iStar, mu, theta,
+                                                    sigma, gaussian_tau, dst)
                 index = iStar-firstInfection+1
                 if logU[(index+3)] < logLRatio_tau
-                    sharedTau[iStar] = copy(tauiStar)
+                   tau[iStar] = copy(tauiStar)
                 end
             end
         end
         tau_time = tau_time + (now() - tau_start);
         
-        chain[r,1:infectionCount] = copy(sharedTau[infectionIndex]);
+        chain[r,1:infectionCount] = copy(tau[infectionIndex]);
         chain[r,(infectionCount+1):(infectionCount+3)] = copy([mu sigma theta]);
     end
 

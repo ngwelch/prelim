@@ -255,25 +255,24 @@ end
 function llRatio_tau(tau, tauiStar, iStar, mu, theta, sigma, gaussian_tau, 
                           dst; 
                           Tlast=30.0)
-    N = length(tau)
     
-    dllTerm1 = mu*(tau[iStar] - tauiStar)
-    dllTerm2 = @spawn getMinSum(iStar, tauiStar, mu, tau, theta, sigma, 
+    dllTerm1 =  mu*(tau[iStar] - tauiStar)
+    dllTerm2 = getMinSum(iStar, tauiStar, mu, tau, theta, sigma, 
                                 gaussian_tau, dst)
-    dllTerm3 = @spawn getMaxSum(iStar, tauiStar, mu, tau, theta, sigma,
+    dllTerm3 = getMaxSum(iStar, tauiStar, mu, tau, theta, sigma,
                                 gaussian_tau, dst)
-    dllTerm4 = @spawn getSumIntervalBelowTauStar(iStar, tauiStar, mu, tau, 
+    dllTerm4 = getSumIntervalBelowTauStar(iStar, tauiStar, mu, tau, 
                                           theta, sigma, gaussian_tau, dst)
-    dllTerm5 = @spawn getSumIntervalAboveTauStar(iStar, tauiStar, mu, tau, 
+    dllTerm5 = getSumIntervalAboveTauStar(iStar, tauiStar, mu, tau, 
                                           theta, sigma, gaussian_tau, dst)
-    
+     
     tauStar = copy(tau)
     tauStar[iStar] = tauiStar
     dllTerm6 = getLogLambda(tauStar, theta, mu, sigma, dst, Tlast)
     dllTerm7 = getLogLambda(tau, theta, mu, sigma, dst, Tlast)
     
-    dll = dllTerm1 + fetch(dllTerm2) + fetch(dllTerm3) + fetch(dllTerm4) + 
-        fetch(dllTerm5) + dllTerm6 - dllTerm7
+    dll = dllTerm1 + dllTerm2 + dllTerm3 + dllTerm4 + 
+        dllTerm5 + dllTerm6 - dllTerm7
     dll
 end
 
