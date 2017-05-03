@@ -58,10 +58,10 @@ llRatio_sigma = function(sigma, sigmaStar, mu, tau, theta, dst, Tlast=30,
   dllTerm3 = getLogLambda(tau, theta, mu, sigmaStar, dst, Tlast) - 
     getLogLambda(tau, theta, mu, sigma, dst, Tlast)
   
-  priorStar = dgamma(sigmaStar, shape=sigma_a, rate=sigma_b)
-  prior = dgamma(sigma, shape=sigma_a, rate=sigma_b)
+  logPriorStar = log(dgamma(sigmaStar, shape=sigma_a, scale=sigma_b))
+  logPrior = log(dgamma(sigma, shape=sigma_a, scale=sigma_b))
   
-  dll = dllTerm1 + dllTerm2 + dllTerm3 + priorStar - prior
+  dll = dllTerm1 + dllTerm2 + dllTerm3 + logPriorStar - logPrior
   return(dll)
 }
 

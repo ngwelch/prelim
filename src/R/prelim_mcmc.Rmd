@@ -26,8 +26,8 @@ library(raster)
 
 ## Chain Evaluation
 ```{r}
-results = read.table(file="~/prelim/data/mcmc_chain.txt")
-accept_results = read.table(file="~/prelim/data/mcmc_performance_summary.txt")
+results = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")
+accept_results = read.table(file="~/prelim/data/mcmc_chain_metrics_R.csv")
 number_of_trials = nrow(results)
 ```
 
@@ -64,8 +64,6 @@ dfInfected = tmp[theorder,]
 df = rbind(dfNeverInfected, dfInfected)
 rownames(df) = seq(1, nrow(df), 1)
 
-write.table(df, file="/Users/nwelch/prelim/data/canedataP.txt")
-
 # Infection Metrics
 cumInfected = c(0, apply(df[,-(1:2)], 2, sum))
 timeInspected = c(0, 6, 10, 14, 19, 23, 30)
@@ -95,35 +93,28 @@ tauLowerBoundIndex = apply(tauUpperBoundTmp, 1, whichZeroFunc)
 getMinTime = function(i) timeInspected[i]
 tauLowerBound = sapply(tauLowerBoundIndex, getMinTime)
 
+tmp = cbind(dfNeverInfected, 40, 40, 40)
 infectionData = cbind(dfInfected, tau, tauLowerBound, tauUpperBound)
+names(tmp) = names(infectionData)
+df = rbind(tmp, infectionData)
+write.csv(df, file="/Users/nwelch/prelim/data/plantData.csv", row.names=FALSE)
 
-
-write.csv(infectionData, file="/Users/nwelch/prelim/data/infectionData.csv", 
-          row.names=FALSE)
-
-infectedDist = pointDistance(dfInfected[,c('x', 'y')], longlat=FALSE)
-write.csv(infectedDist, file="/Users/nwelch/prelim/data/infectedDistances.csv", 
+dst = pointDistance(df[,c('x', 'y')], longlat=FALSE)
+write.csv(dst, file="/Users/nwelch/prelim/data/plantDistance.csv", 
           row.names=FALSE)
 ```
 
 # Create Test Data Set
 The following codes create a test set that is a small sample of the data from the field. The ideas is that this data offers a reasonably computable sample that should lead us to somewhat reasonable estimates of the full data set parameter values. 
 ```{r}
-tmp = cbind(dfNeverInfected, NA, NA, NA)
-names(tmp)[9:11] = c('tau', 'tauLowerBound', 'tauUpperBound')
-tmp = rbind(tmp, infectionData)
-origOrder = order(tmp$x, tmp$y)
-tmp = tmp[origOrder,]
-testPlants = which((tmp$x <= 5) & (tmp$y <= 10))
-testSquare = tmp[testPlants,]
-testInfected = testSquare[testSquare$t6==1,]
+testPlants = which((df$x <= 5) & (df$y <= 10))
+dfTest = df[testPlants,]
 
-write.csv(testInfected, file="/Users/nwelch/prelim/data/infectionDataTest.csv",
+write.csv(dfTest, file="/Users/nwelch/prelim/data/plantDataTest.csv",
           row.names=FALSE)
 
-testInfectedDist = pointDistance(testInfected[,c('x', 'y')], longlat=FALSE)
-write.csv(testInfectedDist, 
-            file="/Users/nwelch/prelim/data/infectedDistancesTest.csv",
+dfTestDist = pointDistance(dfTest[,c('x', 'y')], longlat=FALSE)
+write.csv(dfTestDist, file="/Users/nwelch/prelim/data/plantDistanceTest.csv",
           row.names=FALSE)
 ```
 

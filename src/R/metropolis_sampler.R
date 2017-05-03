@@ -5,12 +5,14 @@ library(MASS)
 source('~/prelim/src/R/likelihood_functions.R')
 
 # TEST!
-df = read.csv(file="/Users/nwelch/prelim/data/infectionDataTest.csv")
-dst = read.csv(file="/Users/nwelch/prelim/data/infectedDistancesTest.csv")
+df = read.csv(file="/Users/nwelch/prelim/data/plantDataTest.csv")
+dst = read.csv(file="/Users/nwelch/prelim/data/plantDistanceTest.csv")
 
-trials = 100
+
+trials = 5000
 infectionCount = sum(df$t6)
 chain = matrix(NA, nrow=trials, ncol=(3+infectionCount))
+
 
 #priors
 mu_a=0.7; mu_b=0.004
@@ -18,12 +20,20 @@ theta_a=0.8; theta_b=10
 sigma_a=0.5; sigma_b=100
 
 # initial values
-theta = theta_a*theta_b #0.105
-sigma = sigma_a*sigma_b #1.15
-mu = mu_a*mu_b #0.003
-tau = t(df$tau)
-chain[1,] = c(tau, theta, sigma, mu)
-colnames(chain) = c(paste0("t", 1:infectionCount), "theta", "sigma", "mu")
+theta = 0.105 #theta_a*theta_b
+sigma = 1.15 #sigma_a*sigma_b
+mu = 0.003 #mu_a*mu_b
+
+
+firstInfection = which.min(df$t6==0)
+lastInfection = nrow(df)
+infectionIndex = firstInfection:lastInfection
+tau = t(df[, 'tau'])
+tauLowerBound = df$tauLowerBound
+tauUpperBound = df$tauUpperBound
+
+chain[1,] = c(tau[infectionIndex], theta, sigma, mu)
+colnames(chain) = c(paste0("t", infectionIndex), "theta", "sigma", "mu")
 
 accept_count = c(rep(0, infectionCount+3), trials, rep(0,3))
 names(accept_count) = c(colnames(chain), 'trials', 'user', 'system', 'elapsed')
@@ -31,7 +41,7 @@ names(accept_count) = c(colnames(chain), 'trials', 'user', 'system', 'elapsed')
 t = system.time(
 for(r in 2:trials){
   
-  tau = chain[r-1, 1:infectionCount]
+  tau[infectionIndex] = chain[r-1, 1:infectionCount]
   theta = chain[r-1, "theta"]
   mu = chain[r-1, "mu"]
   sigma = chain[r-1, "sigma"]
@@ -72,29 +82,31 @@ for(r in 2:trials){
     }
   }
   
-  for(i in 1:infectionCount){
-    iStar=i
-    tauiStar = rnorm(1, mean=tau[i], sd=1)
-    lowerBound = df$tauLowerBound[i]
-    upperBound = df$tauUpperBound[i]
-    
+  index=1
+  for(iStar in infectionIndex){
+    tauiStar = rnorm(1, mean=tau[iStar], sd=1)
+    lowerBound = tauLowerBound[iStar]
+    upperBound = tauUpperBound[iStar]
+
     if((tauiStar<upperBound) & (tauiStar>lowerBound)){
-      logLRatio_tau = llRatio_tau(tau=tau, tauiStar=tauiStar, iStar=i, 
+      logLRatio_tau = llRatio_tau(tau=tau, tauiStar=tauiStar, iStar=iStar, 
       							  mu=mu, theta=theta, sigma=sigma, dst=dst)
       
-      if(logU[(i+3)] < logLRatio_tau){
-        tau[i] = tauiStar
-        accept_count[i] = accept_count[i] + 1
+      if(logU[(index+3)] < logLRatio_tau){
+        tau[iStar] = tauiStar
+        accept_count[index] = accept_count[index] + 1
       }
     }
+    index = index + 1
   }
   
-  chain[r,] = c(tau, theta, sigma, mu)
+  chain[r,] = c(tau[infectionIndex], theta, sigma, mu)
 }
 )
 
 chain = chain[complete.cases(chain),]
-write.table(chain, file="~/prelim/data/mcmc_chain_R.txt")
+write.csv(chain, file="~/prelim/data/mcmc_chain_R.csv", row.names=FALSE)
 
 accept_count[c('user', 'system', 'elapsed')] = summary(t)
-write.table(accept_count, file="~/prelim/data/mcmc_performance_summary_R.txt")
+write.table(accept_count, file="~/prelim/data/mcmc_chain_metrics_R.csv",
+            row.names=FALSE)
