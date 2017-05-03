@@ -1,18 +1,7 @@
+#!/usr/bin/env julia
+
 using DataFrames;
 using Distributions;
-
-# priors
-mu_a=0.7; 
-mu_b=0.004;
-muPrior = Gamma(mu_a, mu_b)
-
-theta_a=0.8; 
-theta_b=10;
-thetaPrior = Gamma(theta_a, theta_b)
-
-sigma_a=0.5; 
-sigma_b=100;
-sigmaPrior = Gamma(sigma_a, sigma_b)
 
 ##############################################################################
 # log-likelihood
@@ -40,7 +29,9 @@ end
 
 
 function llRatio_mu(mu, muStar, theta, sigma, tau, dst; 
-                        Tlast=30, mu_a=0.7, mu_b=0.004)
+                        Tlast=30.0, mu_a=0.7, mu_b=0.004)
+    muPrior = Gamma(mu_a, mu_b)
+    
     tauLessTIndex = find(x-> x<=Tlast, tau)
     tauGreaterTIndex = find(x-> x>Tlast, tau)
     
@@ -68,8 +59,7 @@ end
 #gaussianStar_s = Normal(mu, sigmaStar)
 
 function getSumLessT_sigma(sigma, sigmaStar, gaussian_s, gaussianStar_s, mu, 
-                                  tau, theta, dst ; 
-                                  Tlast=30.)
+                                  tau, theta, dst, Tlast=30.0)
     tauLessTIndex = find(x -> x<=Tlast, tau) 
     
     sumLessT = 0
@@ -88,8 +78,7 @@ end
 
 
 function getSumGreaterT_sigma(sigma, sigmaStar, gaussian_s, gaussianStar_s,
-                                     mu, tau, theta, dst; 
-                                     Tlast=30.)
+                                     mu, tau, theta, dst, Tlast=30.)
 
     tauGreaterTIndex = find(x -> x>Tlast, tau)
     
@@ -111,7 +100,9 @@ end
 
 function llRatio_sigma(sigma, sigmaStar, gaussian_s, gaussianStar_s,  mu, 
                               tau, theta, dst; 
-                              Tlast=30., sigma_a=0.5, sigma_b=100.)
+                              Tlast=30.0, sigma_a=0.5, sigma_b=100.)
+    
+    sigmaPrior = Gamma(sigma_a, sigma_b)
     
     dllTerm1 = getSumLessT_sigma(sigma, sigmaStar, gaussian_s, gaussianStar_s,
                                         mu, tau, theta, dst)
@@ -138,7 +129,7 @@ end
 #gaussian_t = Normal(mu, sigma)
 
 function getSumLessT_theta(theta, thetaStar, mu, tau, sigma, gaussian_t, dst, 
-                                  Tlast=30.)
+                                  Tlast=30.0)
     
     tauLessTIndex = find(x -> x<=Tlast, tau)
     
@@ -157,7 +148,7 @@ end
 
 
 function getSumGreaterT_theta(theta, thetaStar, mu, tau, sigma, gaussian_t, 
-                                     dst, Tlast=30.)
+                                     dst, Tlast=30.0)
     
     tauGreaterTIndex = find(x -> x>Tlast, tau)
     
@@ -176,9 +167,10 @@ end
 
 
 
-function llRatio_theta(theta, thetaStar, mu, tau, sigma, gaussian_t, dst, 
-                         Tlast=30, theta_a=0.8, theta_b=10)
+function llRatio_theta(theta, thetaStar, mu, tau, sigma, gaussian_t, dst; 
+                         Tlast=30.0, theta_a=0.8, theta_b=10.0)
     
+    thetaPrior = Gamma(theta_a, theta_b)
     dllTerm1 = getSumLessT_theta(theta, thetaStar, mu, tau, sigma, gaussian_t, 
                                         dst, Tlast)
     
@@ -261,17 +253,18 @@ end
 
 
 function llRatio_tau(tau, tauiStar, iStar, mu, theta, sigma, gaussian_tau, 
-                          dst, Tlast=30.)
+                          dst; 
+                          Tlast=30.0)
     N = length(tau)
     
     dllTerm1 = mu*(tau[iStar] - tauiStar)
-    dllTerm2 = getMinSum(iStar, tauiStar, mu, tau, theta, sigma, 
+    dllTerm2 = @spawn getMinSum(iStar, tauiStar, mu, tau, theta, sigma, 
                                 gaussian_tau, dst)
-    dllTerm3 = getMaxSum(iStar, tauiStar, mu, tau, theta, sigma,
+    dllTerm3 = @spawn getMaxSum(iStar, tauiStar, mu, tau, theta, sigma,
                                 gaussian_tau, dst)
-    dllTerm4 = getSumIntervalBelowTauStar(iStar, tauiStar, mu, tau, 
+    dllTerm4 = @spawn getSumIntervalBelowTauStar(iStar, tauiStar, mu, tau, 
                                           theta, sigma, gaussian_tau, dst)
-    dllTerm5 = getSumIntervalAboveTauStar(iStar, tauiStar, mu, tau, 
+    dllTerm5 = @spawn getSumIntervalAboveTauStar(iStar, tauiStar, mu, tau, 
                                           theta, sigma, gaussian_tau, dst)
     
     tauStar = copy(tau)
@@ -279,8 +272,8 @@ function llRatio_tau(tau, tauiStar, iStar, mu, theta, sigma, gaussian_tau,
     dllTerm6 = getLogLambda(tauStar, theta, mu, sigma, dst, Tlast)
     dllTerm7 = getLogLambda(tau, theta, mu, sigma, dst, Tlast)
     
-    dll = dllTerm1 + dllTerm2 + dllTerm3 + dllTerm4 + dllTerm5 +
-        dllTerm6 - dllTerm7
+    dll = dllTerm1 + fetch(dllTerm2) + fetch(dllTerm3) + fetch(dllTerm4) + 
+        fetch(dllTerm5) + dllTerm6 - dllTerm7
     dll
 end
 
