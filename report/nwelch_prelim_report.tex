@@ -25,7 +25,7 @@
 
 \begin{abstract}
 This report examines the findings published in \textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data} \cite{Brown}. 
-This paper aims conduct statistical inference on parameters associated with a simple individual level model. 
+This paper aims to conduct statistical inference for parameters associated with a simple individual level infectious disease model. 
 Model parameters are estimated using the Metropolis sampling algorithm; however, the computation burden created by fitting even a simple model leads to prohibitively long computation time. 
 Statistical and computational methods to overcome the computing challenge are reviewed as a result. 
 \end{abstract}
@@ -38,10 +38,10 @@ Statistical inference for parameters underlying these models is less mature.
 In these models, the risk of contracting the disease is modeled at the individual level rather than for the population as a whole. 
 The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individuals  exposure to those infected. 
 While this model is conceptually convenient, the computational complexity and limitations of algorithms capable of fitting such a model create significant challenges.
-In \cite{Brown}, the authors appeal to standard likelihood methods and the Metropolis algorithm to estimate a simple ILM disease propagation model.
+In \cite{Brown}, the authors appeal to standard likelihood methods and the Metropolis algorithm to estimate a simple individual level model (ILM) for disease propagation.
 The emphasis on basic components like the Metropolis sampler and simple disease model focuses readers on common challenges inherent with data for statistical inference with disease data. 
 
-\subsection{Literature Reveiw}
+\subsection{Literature Review}
 \cite{Haber} introduced ILMs in the context of disease spread among members within households. This early ILM assumes infected individuals are evenly dispersed evenly throughout the population. It also assumes complete data are available to fit these early models. 
 
 \cite{Becker} surveys a number of models and the types of data sets these models can accommodate. 
@@ -91,13 +91,13 @@ Under this model, once a plant becomes infected, it remains infected for the dur
 While this is a particularly simple model, it is plausible considering the way that such an infestation occurs for a 30 weeks time period. 
 This simple model also keeps emphasis on the principle statistical challenge in this paper: the unknown infection times. 
 
-Intervals in which a susceptible plants became infected is recorded, but the data do not include exact infection times.  
+Intervals in which susceptible plants became infected are recorded, but the data do not include exact infection times.  
 As a result, there is no way of knowing how long a plant remained in the susceptible and infected stages.
 \cite{Brown}'s approach treats these unknown infection times as latent variables.
 The data do, however, bound infection times for the plants.
-If infection times are treated as latent variables, these bounds reduce the parameter space necessary to explore when modeling the true infection times. 
+If infection times are treated as latent variables, these bounds reduce the parameter space necessary to explore when sampling the true infection times. 
 
-With the model framework and likelihood function in hand, \cite{Brown} takes a Bayesian approach to sample the parameter space of the SI model. 
+With the model framework and likelihood function in hand, \cite{Brown} take a Bayesian approach to approximate the posterior parameter space of the SI model. 
 Weak priors are placed on the model parameters, and a basic Metropolis algorithm is used to sample the parameter space. 
 This empirical parameter sample is then used to carry out basic inference and prediction. 
 Simulated infestation paths resulting from the sampled parameters help assess the efficacy of the proposed model. 
