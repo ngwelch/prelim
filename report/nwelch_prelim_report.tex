@@ -17,7 +17,7 @@
 %%\maketitle
 
 \begin{center}
-  {\LARGE Statistical inference and computational efficiency for spatial infectious disease models with plantation data}\\\ \\
+  {\LARGE Statistical Inference and Computational Efficiency for Spatial Infectious Disease Models with Plantation Data}\\\ \\
   {Nathan Welch \\ 
     Department of Statistics, University of Washington Seattle, WA, 98195, USA
   }
@@ -112,6 +112,112 @@ Simulated infestation paths resulting from the sampled parameters help assess th
 Figure \ref{fig:data_plot} summarizes the sugar cane data set. The black dots indicate locations of infected plants at the conclusion of the 30 week study period. Grey dots indicate the location of plants that were not infected. The plot on the right shows the cumulative number of infected plants for each inspection. 
 
 \section{Methods}
+\subsection{Model and Likelihood}
+
+Inference for ILM model parameters begins with the likelihood function. 
+Plausible models account for the locations of infected and susceptible plants along with the respective infection times and durations of exposures. 
+However, time intervals in which a susceptible plant becomes infected offer the only temporal queues. 
+As a result, infection time, $\tau_j$, for plant $j$ is treated as a latent variable. 
+
+The model must also account for the transmission rate differential induced by the physical distance separating infected and susceptible plants. 
+The transmission rate between an infected plant far from a susceptible plant should be smaller than the rate between two plants next to one another.
+As a result, let the function $\theta f(x_i -x_j \sigma | \sigma)$ dente the rate of infection for plant $i$ at time $t$ and for a plant $j$ infected prior to $t$. 
+Accounting for the rate of spontaneous infection $\mu$, the cumulative intensity of infections at plant $i$ and time $t$ given the infection times for plants $j \in \{1, 2, \dots, 1742\}$ is 
+
+$$ \lambda(x_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(x_i - x_j; \sigma)$$
+
+While this function increases with time, the SI construct assumed for these data suggest that once a plant becomes infected, it remains infected. 
+With the rate of infection established, the likelihood of observing infection times $\{\tau_1, \dots, \tau_N\}$ becomes
+\begin{itemize}
+\item Probability of not observing infections during each plant's time in the susceptible state 
+\item Probability of observing infections at each $\tau_i$
+\end{itemize}
+Approximating infection events with a Poisson process and noting that the rate parameter equals the mean, the probability that plant $i$ remains uninfected up to time $\tau_i$ is 
+$$ \exp \left\{- \int^{\tau_i}_{0} \lambda(x_i, u) du \right\}$$
+The density function associated with an infection at time $\tau_i$, $\lambda(x_i, \tau_i)$, is the second component of the likelihood. 
+The probability that a plant remains uninfected throughout the period under consideration follows the same Poisson process reasoning used as above. 
+This leads to the following likelihood equation. 
+\begin{equation} L_{\theta, \mu, \tau} \propto \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt\right \} \lambda(x_i, \tau_i)\right] \left\{ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt\right \}\right\} \end{equation}
+
+It remains to specify the infection kernel function, $f(x_i -x_j \sigma | \sigma)$. In this case, a radially symmetric bivariate Gaussian density is appropriate. 
+\begin{equation} f(d|\sigma) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp \left\{-\frac{||d||^2}{2\sigma^2} \right\} \label{eq:kernel} \end{equation}
+\cite{Brown} reasons that the Gaussian kernel is appropriate considering the movement of amphids is Brownian Motion. 
+With that argument, $\sigma^2$ in (\ref{eq:kernel}) denotes the variance of the distance an amphid travels in one week. 
+
+\subsection{Prior Distributions}
+Weakly informative priors were used for the endemic infection rate ($\mu$), the epidemic infection rate ($\theta$), and the variance for distance disease travels in a week ($\sigma^2$). 
+Prior parameters were specified by considering the 95\% prediction intervals considering on the number of infections observed over 30 weeks time.
+In particular,  
+\begin{itemize}
+\item $\mu \sim$ Gamma(0.7, 0.004) yields a 95\% prediction interval between 1 and 630. 583 infections were observed in the data.
+\item $\theta \sim$ Gamma(0.8, 10) leads to an infected plant requiring 1 to 16 weeks time to produce the first infection when surrounded by susceptible plants
+\item $\sigma \sim$ Gamma(0.5, 100) implies that nearly all amphids will have traveled less than 10 cm at the 2.5\% quantile and around 500 meters at the 95.5\% quantile
+\end{itemize}
+Placing $\mu$ and $\theta$ at the lower end of their ranges leads to few infections over 30 weeks time. 
+Setting these too high leads to nearly universal infection. 
+Extreme values of $\sigma$ leads a to somewhat different result. 
+Specifying $\sigma$ too small would imply that the amphids driving the infection spread are incapable of moving between plants. 
+Setting $\sigma$ too large removes the spatial component of the model. 
+\cite{Brown} specified priors leading to physically plausible outcomes. 
+
+
+\subsection{Inference}
+Exact infection times, $\tau_i$, are unobserved. 
+Only the intervals in which a plant became infected offer clues about the status of plants during the study period. 
+Since each plant's infection status and location influence all other plants at each time step, there is no way to eliminate the dependency on the unknown infection times, $\tau$.
+\cite{Brown} follows a data augmentation and MCMC approach to resolve handle the issue. 
+This process is known as a \textit{non-centering parameterization} in the literature and \cite{Jewell} section 2.2 outlines a modeling framework nearly identical to the methods followed here. 
+
+In this case, priors are specified for the model parameters of interest, specifically $\theta$, $\sigma$, and $\mu$. 
+Infection intervals, $\textbf{Y} = \{Y_i:i=1,\dots, N\}$, are the data. 
+The Metropolis algorithm summarized below leads to a posterior sample from $\pi(\mu, \theta, \sigma, \tau \mid \textbf{Y})$. 
+
+\begin{enumerate}
+\item Initialize the algorithm at $\tau_i^{0}$, $\mu^{0}$, $\sigma^{0}$, $\theta^{0}$ for iteration $r=0$
+\item at iteration $r$, set $\tau_i^{(r)}=\tau_i^{(r-1)}$, $\mu^{(r)}=\mu^{(r-1)}$, $\sigma^{(r)}=\sigma^{(r-1)}$, $\theta^{(r)}=\theta^{(r-1)}$
+\item simulate a proposal $\mu^{\star} \sim N(\mu^{(r-1)}, \nu_{\mu})$
+\item set $\mu^{(r)} = \mu^{\star}$ with probability
+$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{\star}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{\star})}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{r})} \right\} $$
+			otherwise, set $\mu^{(r)}=\mu^{(r-1)}$
+\item repeat steps 3 and 4 for $\theta$ and $\sigma$
+\item for each $i=1, \dots, N$, propose a new $\tau^{\star}_i$ and accept with probability
+$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,\tau^{(r)}_{i+1}, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{\star})}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{r})} \right\} $$
+\item return to step 2 until a sufficiently large sample has been obtained
+\end{enumerate}
+
+The implementation for this model uses normally distributed proposals with means at the previous $\theta$, $\sigma$, $\mu$, and $\tau_i$ values and $ \nu_{\theta}=0.005^2$, $ \nu_{\mu}=0.0005^2$, $ \nu_{\sigma}=0.05^2$, and $ \nu_{\tau^{(r)}_i}=1$. 
+The authors select these standard deviations after assessing the mixing properties of test runs. 
+
+\subsection{Implementation}
+The data include 583 unknown infection times. 
+As a result, some portion of the likelihood function has to be computed 586 times for each pass through the sampler. 
+Implementing the algorithm naively leads to prohibitively long computation times. 
+The following sections review the steps taken to improve and benchmark computational performance enough to make the non-centering parameterization method viable for data with challenging interdependencies. 
+The methods were implemented in the Julia. 
+
+\subsubsection{Basic Algorithm}
+The basic implementation primarily executes the pseudo-code from the previous section with three exceptions.
+First, the distance matrix among the 1,742 plants is pre-computed and referenced throughout the implementation. 
+The other exception concerns the $\tau^{(r)}$ update routine. 
+Many of the terms in the likelihood ratio are identical, eliminating the need to compute several terms in the likelihood function. 
+Finally, eliminating impossible infection time sequences among the remaining pieces of the computation led to efficiencies in the compute time.
+
+\subsubsection{Parallel Algorithm}
+The parallel implementation distributes the computational burden two different ways. 
+Both focus on computing updating $\tau$. 
+First, the subroutines of the likelihood ratio that cannot run asynchronously but still require significant computational resources are broken into pieces and computed on multiple cores. 
+The other parallelization improvement results from recognizing that some updates are not possible given order that infections were known to have occurred. 
+As a result, proposals that would reverse this known ordering are rejected immediately. 
+More to come... 
+
+\subsubsection{Improved Parallel Algorithm}
+Tbd...
+
+\subsubsection{Truncated Algorithm}
+Tbd...
+
+\subsubsection{Discrete Time Algorithms}
+Tbd...
 
 \section{Results}
 
