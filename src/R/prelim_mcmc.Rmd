@@ -27,7 +27,7 @@ library(raster)
 ## Chain Evaluation
 ```{r}
 results = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")
-accept_results = read.table(file="~/prelim/data/mcmc_chain_metrics_R.csv")
+accept_results = read.csv(file="~/prelim/data/mcmc_chain_metrics_julia.csv")
 number_of_trials = nrow(results)
 ```
 

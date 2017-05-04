@@ -6,7 +6,7 @@ theta = 0.105;
 
 include("/Users/nwelch/prelim/src/Julia/metropolis_sampler.jl");
 
-df = readtable("/Users/nwelch/prelim/data/plantDataTest.csv");
-dst = readtable("/Users/nwelch/prelim/data/plantDistanceTest.csv");
+df = readtable("/Users/nwelch/prelim/data/plantData.csv");
+dst = readtable("/Users/nwelch/prelim/data/plantDistance.csv");
 
-run_mcmc_sampler(mu, theta, sigma, df, dst, trials=5000)
+run_mcmc_sampler(mu, theta, sigma, df, dst, trials=100)
