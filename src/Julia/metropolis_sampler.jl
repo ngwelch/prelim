@@ -27,6 +27,7 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
     infectionIndex = firstInfection:lastInfection;
 
     tau = convert(Array, copy(df[:tau]));
+    tau = convert(SharedArray, tau)
     tauLowerBound = df[:tauLowerBound];
     tauUpperBound = df[:tauUpperBound];
 
@@ -38,20 +39,14 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
 
     for r=2:trials
     
-        tau[infectionIndex] = copy(chain[r-1, 1:infectionCount])
-        mu = copy(chain[(r-1), (infectionCount+1)])
-        sigma = copy(chain[(r-1), (infectionCount+2)])
-        theta = copy(chain[(r-1), (infectionCount+3)])
-    
-    
         # sample U to generate the acceptance criteria
         u = rand(U, (infectionCount+3))
         logU = log(u)
     
     
         # shared function arguments
-        tauLessTIndex = find(x-> x<=Tlast, tau)
-        tauGreaterTIndex = find(x-> x>Tlast, tau)
+        #tauLessTIndex = find(x-> x<=Tlast, tau)
+        #tauGreaterTIndex = find(x-> x>Tlast, tau)
     
     
         # update mu
@@ -109,8 +104,7 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
         #tau update
         tau_start = now()
         gaussian_tau = Normal(mu, sigma)
-        curTau = copy(tau)
-        tau = convert(SharedArray, tau)
+        #for iStar=infectionIndex
         @sync @parallel for iStar=infectionIndex
         
             J_taui = Normal(tau[iStar], 1)
@@ -120,7 +114,7 @@ function run_mcmc_sampler(mu, theta, sigma, df, dst;
             upperBound = tauUpperBound[iStar]
             
             if (tauiStar<upperBound) & (tauiStar>lowerBound)
-                logLRatio_tau = llRatio_tau(curTau, tauiStar, iStar, mu, theta,
+                logLRatio_tau = llRatio_tau(tau, tauiStar, iStar, mu, theta,
                                                     sigma, gaussian_tau, dst)
                 index = iStar-firstInfection+1
                 if logU[(index+3)] < logLRatio_tau
