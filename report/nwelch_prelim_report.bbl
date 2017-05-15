@@ -26,7 +26,7 @@ Diggle, P. (2006).
 
 \bibitem[Gibson, 1997]{Gibson}
 Gibson, G.~J. (1997).
-\newblock Markov chain monte carlo methods for fitting spatiotemporal
+\newblock {M}arkov {C}hain {M}onte {C}arlo methods for fitting spatiotemporal
   stochastic models in plant epidemiology.
 \newblock {\em Applied Statistics}, (46):215--233.
 
@@ -49,7 +49,7 @@ McKinley, T., Cook, A.~R., and Deardon, R. (2009).
 O'Neill, P.~D., Balding, D.~J., Becker, N.~G., Eerola, M., and Mollison, D.
   (2000).
 \newblock Analysis of infectious disease data from household outbreaks by
-  markov chain monte carlo methods.
+  {M}arkov {C}hain {M}onte {C}arlo methods.
 \newblock {\em Applied Statistics}, (49):517--542.
 
 \end{thebibliography}
