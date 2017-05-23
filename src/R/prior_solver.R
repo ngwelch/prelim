@@ -74,12 +74,26 @@ xi = tmp[Re(tmp)<=4.5 & Im(tmp)<=1]
 dxixj = Mod(outer(xi, xi, FUN="-"))
 
 it=1
-theta = seq(0.05, 0.2, by=0.01)
-#52.6225#seq(0.5, 2, by=0.05)
-sigma = sort(rgamma(10, shape=weakestSigmaPrior$a, scale=weakestSigmaPrior$b))
+shape_sigma = seq(0.4, 0.6, by=0.1)
+scale_sigma = seq(90, 105, by=1)
+sigmaParLength = length(shape_sigma)*length(scale_sigma)
+
+shape_theta = seq(0.5, 0.9, by=0.1)
+rate_theta = seq(0.1)
+thetaParLength = length(shape_theta)*length(rate_theta)
+
+coverage = matrix(0, nrow=sigmaParLength*thetaParLength, ncol=5)
+colnames(coverage) = c("shape_sigma", "scale_sigma", 
+                       "shape_theta", "rate_theta", 
+                       "cover")
 sampleSize=5
-coverage = matrix(0, nrow=length(theta)*length(sigma), ncol=3)
-colnames(coverage) = c("theta", "sigma", "cover")
+
+#parameterShape = sigmaParLength*thetaParLength
+#theta = seq(0.05, 0.2, by=0.01)
+#52.6225#seq(0.5, 2, by=0.05)
+#sigma = sort(rgamma(10, shape=0.5, scale=100))
+
+
 #out = array(dim=c(sampleSize,9,length(theta)))
 
 for(th in theta){

@@ -2,8 +2,11 @@
 
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{ulem}
+\usepackage{color}
 \usepackage{natbib}
 \usepackage{amsmath}
+\usepackage{lipsum}
 
 %%\setlength{\oddsidemargin}{0.25in}
 %%\setlength{\textwidth}{6in}
@@ -12,6 +15,9 @@
 
 \renewcommand{\baselinestretch}{1.5} 
 
+\newcommand{\vmdel}[1]{\sout{#1}}
+\newcommand{\vmadd}[1]{\textbf{\color{red}{#1}}}
+\newcommand{\vmcomment}[1]{({\color{blue}{VM's comment:}} \textbf{\color{blue}{#1}})}
 
 \bibliographystyle{apalike}
 
@@ -26,15 +32,17 @@
 \end{center}
 
 \begin{abstract}
-This report examines the findings published in \textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data} \citet{Brown}. 
-This paper aims to conduct statistical inference for parameters associated with a simple individual level infectious disease model. 
-Model parameters are estimated using the Metropolis sampling algorithm; however, the computation burden created by fitting even a simple model leads to prohibitively long computation time. 
-Statistical and computational methods to overcome the computing challenge are reviewed as a result. 
+This paper aims to conduct statistical inference for parameters of an individual level infectious disease model. 
+Individual level models have the capacity to reflect spatial and temporal influences on disease propagation among infected and susceptible individuals.
+A simple individual level model is derived and fit to data collected during an insect infestation of a sugar cane field.
+Model parameters are estimated using the Metropolis sampling algorithm; however, the computational burden created by fitting even a simple model leads to prohibitively long computation times. 
+\textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data} \citep{Brown} fit a model to the same data. 
+The authors offer mathematical and computational insights to improve computation time, but errors in the published Metropolis algorithm source code led the authors to inferences and conclusions unsupportable by the data. 
 \end{abstract}
 
 \section{Introduction}
 
-Disease propagation modeling is an expansive and active area of mathematical research.
+Disease propagation modeling is an expansive and active area of mathematical research \citep{Kranz, Anderson}.
 Statistical inference for parameters underlying these models is less mature, but computational advances in recent years make it possible to encode convoluted dependencies and draw inference on the parameters influencing disease propagation. 
 Improving our understanding of these parameters will lead to more effective responses or interventions to disease outbreaks. 
 
@@ -42,8 +50,8 @@ Improving our understanding of these parameters will lead to more effective resp
 In these models, the risk of contracting the disease is modeled at the individual level rather than for the population as a whole. 
 The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individuals  exposure to those infected. 
 While this model is conceptually convenient, the computational complexity and limitations of algorithms capable of fitting such a model create significant challenges.
-In \citet{Brown}, the authors appeal to standard likelihood methods and the Metropolis algorithm to estimate a simple individual level model (ILM) for disease propagation.
-The emphasis on basic components like the Metropolis sampler and simple disease model focuses readers on common challenges inherent with data for statistical inference with disease data. 
+In \citet{Brown}, the authors appeal to standard likelihood methods and the Metropolis algorithm \citep{Metropolis} to estimate the parameters of a simple individual level model (ILM) for disease propagation.
+The emphasis on basic components like the Metropolis sampler and simple disease model focuses readers on common challenges inherent with data for statistical inference with infectious disease data. 
 
 \subsection{Literature Review}
 \label{literature_review}
@@ -66,15 +74,13 @@ As the cost to evaluate the likelihood function grows with the number of observa
 These methods led to reduced computation times compared to a full MCMC implementation, but each either require either completely observed data or are too closely associated with a particular model to be widely applicable.
 
 \subsection{Statistical Problem}
-
-\citet{Brown}'s work adopts or adapts some portion of the from the previous section.
-The authors use these contributions to model an insect infestation in a Guadeloupe sugar cane field over 30 weeks time. 
-This data set is useful for showing how inference may proceed even when essential information needed for mathematical modeling and/or statistical inference are unknown or obfuscated. 
-
+Contemplating the complexity of statistical inference for an individual level infectious disease model whose infection rates include spatial and temporal dependencies is daunting.
+However, modeling disease propagation among regularly spaced crops on a farm reduces the challenge. 
+This study aims to conduct statistical inference for an ILM fit to an insect infestation of a Guadeloupe sugar cane field over a period of 30 weeks.
 Figure \ref{fig:data_plot} summarizes the sugar cane data set. 
 The black dots indicate locations of infected plants at the conclusion of the 30 week study period. 
 Grey dots indicate the location of plants that were not infected. 
-The plot on the right shows the cumulative number of infected plants for each inspection.
+The plot on the right shows the cumulative number of infected plants after each inspection.
 
 \begin{figure}[H]
 \centering
@@ -84,15 +90,14 @@ The plot on the right shows the cumulative number of infected plants for each in
 \end{figure} 
 
 When modeling disease propagation among individuals who are either susceptible or already infected, the time of infection and duration of susceptible individuals' exposures to infected members of the population are critical. 
-These data are necessary to infer the rate at which the disease moves from the infected to the susceptible. 
-However, scenarios that include granular infection times are exceptional. 
-Such fine detail is typically reserved for extremely dangerous or damaging diseases such as avian flu or foot and mouth disease on farms in developed countries \citep{McKinley}. 
-Inference methods for less ominous outbreaks require either additional surveillance, different models, or some other post collection workaround. 
+These data are necessary to infer the rate at which the disease moves from the infected to the susceptible; however, infection times are rarely--if ever--known to any reliable level of precision. 
+Even extremely dangerous or damaging diseases among closely monitored populations such as foot and mouth disease among livestock lack granular infection time data \citep{Diggle, Deardon}. 
+As a result, plausible inference methods must include some means to account for uncertainty in infection times. 
 
 The sugar cane data set includes the infection status of 1,742 plants at six times over a 30 week period. 
 Each observation lists the plant location on a two-dimensional rectangular grid and whether it is infected at week 0, 6, 10, 14, 19, 23, and 30.
 For this data set, it is reasonable to assume that once a plant becomes infected, it remains infected for the duration of the study period. 
-A Susceptible-Infected (SI) model framework is appropriate for this situation and \citet{Jewell} provides a thorough introduction to this and other disease model frameworks. 
+A Susceptible-Infected (SI) model is appropriate for this situation and \citet{Jewell} provides a thorough introduction to this and other disease model frameworks. 
 While an SI model is particularly simple, the model is plausible considering the way that an infestation proceeds for an aphid infestation of plants over 30 weeks time. 
 Starting with a simple model also emphasizes the principle statistical components handled by \citet{Brown}, e.g. unknown infection times. 
 
@@ -188,7 +193,7 @@ Substituting $P(k=0)=P(k \ge N)=0.025$, it follows that
 \end{align*}
 Plugging these equations into a numerical solver with $N=630$ leads to $\alpha=0.6893886$ and $\beta=0.004766281$. 
 These results are consistent with \citet{Brown}'s findings, i.e. $\alpha=0.7$ and $\beta=0.004$. 
-The differences are, however, significant when considering the prior predictive quantiles and variances corresponding to the distribution $\mu_{\text{Brown}} \sim \Gamma(0.7, 0.004)$ and \\$\mu_{\text{replicated}} \sim \Gamma(0.6893886, 0.004766281)$. 
+The differences are, however, significant when considering the prior predictive quantiles and variances corresponding to the distribution $\mu_{\text{Brown}} \sim \Gamma(0.7, 0.004)$ and $\mu_{\text{replicated}} \sim \Gamma(0.6893886, 0.004766281)$. 
 Table \ref{table:mu_prior_quantile} shows the quantiles, means, and variances for the prior predictive distribution for $\mu$. 
 
 \begin{table}[ht]
@@ -227,6 +232,7 @@ The algorithm relies on the priors, the likelihood formula, and the data.
 In this case, the data, $\textbf{Y} = \{Y_i:i=1,\dots, m \le N\}$, are the intervals in which each infected plant's status changed from healthy to infected with $m$ denoting the number of intervals in the data and $N$ the total number of infected individuals at the end of the study period. 
 The Metropolis algorithm summarized below leads to a posterior sample from $\pi(\mu, \theta, \sigma, \tau \mid \textbf{Y})$. 
 
+\vbox{
 \begin{enumerate}
 \item Initialize the algorithm at $\tau_i^{0}$, $\mu^{0}$, $\sigma^{0}$, $\theta^{0}$ for iteration $r=0$
 \item at iteration $r$, set $\tau_i^{(r)}=\tau_i^{(r-1)}$, $\mu^{(r)}=\mu^{(r-1)}$, $\sigma^{(r)}=\sigma^{(r-1)}$, $\theta^{(r)}=\theta^{(r-1)}$
@@ -239,7 +245,7 @@ $$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{\star}, \t
 $$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,\tau^{(r)}_{i+1}, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )} \right\} $$
 \item return to step 2 until a sufficiently large sample has been obtained
 \end{enumerate}
-
+}
 The implementation for this model uses normally distributed proposals with means at the previous $\theta$, $\sigma$, $\mu$, and $\tau_i$ values. 
 The concentration parameters used for the proposal distributions were $ \nu_{\theta}=0.005^2$, $ \nu_{\mu}=0.0005^2$, $ \nu_{\sigma}=0.05^2$, and $ \nu_{\tau_i}=1$. 
 
@@ -300,8 +306,45 @@ As a result, $\sigma$ is the only prior properly encoded.
 \label{fig:prior_mu_plot}
 \end{figure} 
 
+\begin{table}[ht]
+\centering
+\begin{tabular}{r|rrrrr}
+  Algorithm & \multicolumn{5}{c}{Times for Updating the Following Parameters} \\
+ \hline
+ & $\theta$ & $\mu$ & $\tau$ & $\sigma$ & Total \\ 
+  \hline
+  Basic & 28.15 & 14.27 & 160.92 & 28.99 & 232.33 \\ 
+  Parallel & 25.08 & 12.57 & 29.99 & 25.17 & 92.81 \\ 
+  Truncated & 1.07 & 1.07 & 1.76 & 1.13 & 5.03 \\ 
+  \hline
+\end{tabular}
+\caption{tbd...}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=0.6\linewidth, keepaspectratio]{/Users/nwelch/prelim/report/figures/figure_3.png}
+\caption{tbd...}
+\label{fig:prior_mu_plot}
+\end{figure} 
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=0.6\linewidth, keepaspectratio]{/Users/nwelch/prelim/report/figures/figure_4.png}
+\caption{tbd...}
+\label{fig:prior_mu_plot}
+\end{figure} 
+
+\begin{figure}[H]
+\centering
+\includegraphics[height=0.51\linewidth, keepaspectratio]{/Users/nwelch/prelim/report/figures/figure_5.png}
+\caption{tbd...}
+\label{fig:prior_mu_plot}
+\end{figure} 
+
 \section{Discussion}
 
+\newpage
 \bibliography{/Users/nwelch/prelim/report/prelim_references}
 
 \end{document}

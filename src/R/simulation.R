@@ -108,11 +108,8 @@ vectorEpiSim = function(muSigmaThetaVector, startTime=0, endTime=30,
 u = c(0.0028, 0.0025, 0.003)
 s = c(1.1, 1.15, 1.08)
 t = c(0.11, 0.08, 0.15)
-vecSim = vectorEpiSim(muSigmaThetaVector=cbind(u,s,t), simCount=10)
+vecSim = vectorEpiSim(muSigmaThetaVector=cbind(u,s,t), simCount=100)
 
-matplot(x=vecSim$week, y=vecSim[,5:ncol(vecSim)], type='l', lty=3, col="#50505030",
-        ylab="infections per week", xlab="week")
-matlines(x=vecSim$week, y=vecSim[,2:4], col='black', lty=c(1,2,2), lwd=3)
 
 ##############################################################################
 ########################## Posterior Sampler #################################
@@ -139,14 +136,21 @@ postEpiSim = function(tau){
 sampleTau = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")[,1:34]
 pstSim = postEpiSim(sampleTau)
 
+par(mfcol=c(1,2), mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(x=pstSim['weeks',], y=t(pstSim[5:200,]), type='l', lty=3, col="#50505030",
-        xlab="infections per week", ylab="week")
+        ylab="infections per week", xlab="week")
 matlines(x=pstSim['weeks',], y=t(pstSim[2:4,]), col='black', lty=c(1,2,2), lwd=3)
+
+matplot(x=vecSim$week, y=vecSim[,5:ncol(vecSim)], type='l', lty=3, col="#50505030",
+        ylab="infections per week", xlab="week")
+matlines(x=vecSim$week, y=vecSim[,2:4], col='black', lty=c(1,2,2), lwd=3)
+par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
 
 ##############################################################################
 ############################ Density Plots ###################################
 ##############################################################################
 
+par(mfcol=c(1,2), mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 ### First time period
 breakPoints = seq(10,14,len=10)
 tmp = apply(sampleTau[,1:7], 2, hist, breaks=breakPoints, plot=F)
@@ -186,6 +190,7 @@ matlines(breakPoints[-1]-diff(breakPoints)/2,
 matlines(breakPoints[-1]-diff(breakPoints)/2, 
          postSampleDensity[,toplot], 
          col="black",lty=c(1,1,2,2))
+par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
 
 ##############################################################################
 ############################# Prediction #####################################

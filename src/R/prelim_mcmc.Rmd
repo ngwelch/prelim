@@ -32,15 +32,24 @@ number_of_trials = nrow(results)
 ```
 
 ```{r}
-ggplot(results) + geom_path(aes(x=1:number_of_trials, y=mu))+theme_bw()
+p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=mu))+theme_bw()
+p
+ggsave(filename="/Users/nwelch/prelim/report/figures/mu_mcmc_chain.png", p, 
+       dpi=300, height=4, width=6)
 ```
 
 ```{r}
-ggplot(results) + geom_path(aes(x=1:number_of_trials, y=theta))+theme_bw()
+p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=theta))+theme_bw()
+p
+ggsave(filename="/Users/nwelch/prelim/report/figures/theta_mcmc_chain.png", p, 
+       dpi=300, height=4, width=6)
 ```
 
 ```{r}
-ggplot(results) + geom_path(aes(x=1:number_of_trials, y=sigma))+theme_bw()
+p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=sigma))+theme_bw()
+p
+ggsave(filename="/Users/nwelch/prelim/report/figures/sigma_mcmc_chain.png", p, 
+       dpi=300, height=4, width=6)
 ```
 ## Figure Reproduction
 
@@ -107,7 +116,9 @@ write.csv(dst, file="/Users/nwelch/prelim/data/plantDistance.csv",
 # Create Test Data Set
 The following codes create a test set that is a small sample of the data from the field. The ideas is that this data offers a reasonably computable sample that should lead us to somewhat reasonable estimates of the full data set parameter values. 
 ```{r}
-testPlants = which((df$x <= 5) & (df$y <= 10))
+xLimit = round(max(df$x)*sqrt(0.1))
+yLimit = round(max(df$y)*sqrt(0.1))
+testPlants = which((df$x <= xLimit) & (df$y <= yLimit))
 dfTest = df[testPlants,]
 
 write.csv(dfTest, file="/Users/nwelch/prelim/data/plantDataTest.csv",
@@ -130,8 +141,8 @@ fig1.1 = ggplot(data=df, aes(x, y, color=factor(t6)), legend=FALSE) +
     panel.grid.minor = element_blank(),
     panel.border = element_blank(),
     panel.background = element_blank())+
-  xlab("")+
-  ylab("")
+  xlab("meters")+
+  ylab("meters")
 ```
 
 ```{r, echo=FALSE}
@@ -164,7 +175,7 @@ fig1.2 = ggplot(data=expandedInfectionDf,
 ```{r}
 g = grid.arrange(fig1.1, fig1.2, ncol=2)
 g
-ggsave(filename="/Users/nwelch/prelim/figures/figure_1.png", g, 
+ggsave(filename="/Users/nwelch/prelim/report/figures/figure_1.png", g, 
        dpi=300, height=4, width=6)
 ```
 
@@ -216,6 +227,45 @@ denstrip(trunc, horiz=T, at=1.5,
 denstrip(full, horiz=T, at=0.5, 
 		ticks=quantile(full, probs=c(0.025, 0.5, 0.975)), width=thewidth)
 ```
+```{r, echo=FALSE}
+prior_scale = rgamma(10000, shape=0.7, scale=0.004)
+prior_rate = rgamma(10000, shape=0.7, rate=0.7)
+
+thewidth=0.5
+thexlim = c(0, 0.008)
+plot(NA, xlim=thexlim, ylim=c(0,2),
+		xlab=expression(mu), yaxt="n", ylab="")
+axis(2, at=c(0.5, 1.5), labels=c("Rate", "Scale"), las=2)
+
+denstrip(prior_scale, horiz=T, at=1.5, 
+		ticks=quantile(prior_scale, probs=c(0.025, 0.5, 0.975)), width=thewidth)
+
+denstrip(prior_rate, horiz=T, at=0.5,
+		ticks=quantile(prior_rate, probs=c(0.025, 0.5, 0.975)), width=thewidth)
+
+```
+```{r}
+ss = 1e4
+rate = rgamma(ss, shape=0.7, rate=0.004)
+scale = rgamma(ss, shape=0.7, scale=0.004)
+rateScale=data.frame(rate, scale)
+
+
+p = ggplot(data=rateScale)+
+    theme(axis.line = element_line(colour='black'),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank())
+
+prate = p+xlim(0, 800)+geom_density(aes(x=rate))
+pscale = p+xlim(0, 0.01)+geom_density(aes(x=scale))
+
+g = grid.arrange(prate, pscale, ncol=2)
+g
+ggsave(filename="/Users/nwelch/prelim/report/figures/rateScaleCompare.png", g, 
+       dpi=300, height=4, width=6)
+```
 
 ```{r}
 tmp = mvrnorm(n=10000, mu=c(1, 2), Sigma=matrix(c(10, 1, 1, 2), 2, 2))
@@ -260,12 +310,14 @@ fig2b = ggplot(data=normdf, aes(sigma, mu)) +
 ```
 
 ```{r}
+png(filename="/Users/nwelch/prelim/report/figures/figure_2.png", 
+    res=300, width=3, height=5, units='in')
 #Create figure window and layout
 plot.new()
 grid.newpage()
 pushViewport(viewport(layout = grid.layout(2, 1)))
 
-#Draw bsae plot
+#Draw base plot
 pushViewport(viewport(layout.pos.row = 1))
 par(mar=c(3,3.5,1,1), fig = gridFIG(), new = TRUE)
 plot(NA, xlim=thexlim, ylim=c(0,3),
@@ -283,6 +335,8 @@ popViewport()
 pushViewport(viewport(layout.pos.row = 2))
 print(fig2b, newpage = FALSE)
 popViewport()
+
+dev.off()
 ```
 
 ```{r}
@@ -375,12 +429,14 @@ fig4a = p + geom_path(data=simInfection, aes(week, S), colour='darkgray') +
   geom_path(data=simInfectionCI, aes(week, lower), color='black') +
   geom_path(data=simInfectionCI, aes(week, med), color='black') +
   geom_path(data=simInfectionCI, aes(week, upper), color='black') +
-  geom_vline(xintercept=timeInspected, color='grey', linetype = "longdash")
+  geom_vline(xintercept=timeInspected, color='grey', linetype = "longdash")+
+  ylab("Infections per Week")
 
 fig4b = p + geom_path(data=simInfection, aes(week, S), colour='darkgray') +
   geom_path(data=simInfectionCI, aes(week, lower), color='black') +
   geom_path(data=simInfectionCI, aes(week, med), color='black') +
-  geom_path(data=simInfectionCI, aes(week, upper), color='black')
+  geom_path(data=simInfectionCI, aes(week, upper), color='black')+
+  ylab("Infections per Week")
 
 fig4c = p + geom_path(data=simInfection, aes(week, S^(0.534)-week),
                       colour='darkgray') +
@@ -399,6 +455,13 @@ fig4d = p + geom_path(data=simInfection, aes(week, S^(0.534)-week),
 ```{r, warning=FALSE}
 grid.arrange(fig4a, fig4b, fig4c, fig4d, ncol=2, nrow=2)
 ```
+```{r, warning=FALSE}
+g = grid.arrange(fig4a, fig4b, ncol=2)
+g
+ggsave(filename="/Users/nwelch/prelim/report/figures/figure_4.png", g, 
+       dpi=300, height=4, width=12)
+```
+
 
 ```{r, echo=FALSE}
 N = nrow(df)
@@ -406,19 +469,43 @@ density = dnorm(rnorm(N))
 density[(N-5):N] = seq(0.8, 1.0, 0.2/5)
 bin = cut(density, breaks=c(0, 0.2, 0.8, 0.99, 1.0))
 #tmp = factor(bin, labels=c(2,1,0))
-prediction = data.frame(df[,c("x", "y")], density)
 
+df = read.csv(file="/Users/nwelch/prelim/data/plantData.csv")
+fig5Labels = read.csv(file="/Users/nwelch/prelim/data/fig5ProbLabels.csv")
+prediction = data.frame(df[,c("x", "y")], fig5Labels)
+colGrey = grey(c(1, 0.65, 0.35, 0.05))
+colLabel = c('zeroTo19', 'twentyTo79', 'eightyTo99', 'knownInfection')
+apply(cbind(colLabel, colGrey), 1, function(s) paste0(s[1], "=", s[2]))
+thecol = c("zeroTo19"="#FFFFFF", "twentyTo79"="#A6A6A6", 
+           "eightyTo99"="#595959", "knownInfection"="#0D0D0D")
 
-fig5 = ggplot(data=prediction, aes(x, y, color=bin), legend=FALSE) + 
+fig5a = ggplot(data=prediction, aes(x, y, color=week35), legend=FALSE) + 
   geom_point() + 
-  scale_colour_manual(values = c("(0,0.2]"="white", 
-                                 "(0.2,0.8]"="gray80",
-                                 "(0.8,0.99]"="gray60",
-                                 "(0.99,1]"="black"), guide=FALSE) +
+  scale_colour_manual(values = thecol, guide=FALSE) +
+  theme_bw() +
+  theme_void() 
+
+fig5b = ggplot(data=prediction, aes(x, y, color=week40), legend=FALSE) + 
+  geom_point() + 
+  scale_colour_manual(values = thecol, guide=FALSE) +
+  theme_bw() +
+  theme_void() 
+
+fig5c = ggplot(data=prediction, aes(x, y, color=week50), legend=FALSE) + 
+  geom_point() + 
+  scale_colour_manual(values = thecol, guide=FALSE) +
+  theme_bw() +
+  theme_void() 
+
+fig5d = ggplot(data=prediction, aes(x, y, color=week60), legend=FALSE) + 
+  geom_point() + 
+  scale_colour_manual(values = thecol, guide=FALSE) +
   theme_bw() +
   theme_void() 
 ```
 
 ```{r, warning=FALSE}
-grid.arrange(fig5, fig5, fig5, fig5, ncol=4)
+g = grid.arrange(fig5a, fig5b, fig5c, fig5d, ncol=4)
+ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5.png", g, 
+       dpi=300, height=6, width=12)
 ```
