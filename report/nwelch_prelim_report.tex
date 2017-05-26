@@ -149,7 +149,7 @@ L(\theta, \mu, \tau) = \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_
 
 The last component of the model to specify is the kernel function, $f(x_i -x_j | \sigma)$. 
 In this case, a radially symmetric bivariate Gaussian density is appropriate. 
-\begin{equation} f( x_i-x_j |\sigma) = \frac{1}{\sqrt{2\pi \sigma^2}} \exp \left\{-\frac{(x_i-x_j )^2}{2\sigma^2} \right\} \label{eq:kernel} \end{equation}
+\begin{equation} f( x_i-x_j |\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||x_i-x_j||^2}{2\sigma^2} \right\} \label{eq:kernel} \end{equation}
 The Gaussian kernel is physically reasonable since the movement of aphids among plants can be modeled by Brownian Motion. 
 With this argument, $\sigma^2$ in (\ref{eq:kernel}) denotes the variance of the distance an aphid travels in one week. 
 
@@ -213,7 +213,8 @@ Brown et. al. & 1.12 & 755.06 & 175.00 & 43750.00 \\
 While the replicated parameter values for $\alpha$ and $\beta$ in the priors are consistent with the results reported in \citep{Brown}, $\alpha=0.7$ and $\beta=0.004$ leads to 755.06 at the 97.5\% quantile instead of 630 suggested in the derivation method described. 
 Replicating the technique described by the authors also leads to a slightly more informative prior based on the variances of the two distributions. 
 
-\textbf{[Remaining prior analysis left for later... Moving on to inference]}
+Formulating a method to set the $\mu$ prior was important since 
+
 \subsubsection{$\boldsymbol{\theta}$ Prior Predictive Distribution Specification}
 
 \subsubsection{$\boldsymbol{\sigma}$ Prior Predictive Distribution Specification}
