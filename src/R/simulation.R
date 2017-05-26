@@ -9,9 +9,9 @@ scalarEpiSim = function(sigma=1.1, mu=0.0028, theta=0.11,
                   startTime=0, endTime=30, susceptableAtStart=rep(TRUE,nrow(dst)), 
                   dxixj=dst, N=nrow(dst), simCount=1, returnSummary=TRUE){
   
-  dstSq = dxixj**2
+  dxixjSq = dxixj**2
   twoSigmaSq = 2*(sigma**2)
-  thetafxixj = (theta/(twoSigmaSq*pi))*exp(-dstSq/twoSigmaSq)
+  thetafxixj = (theta/(twoSigmaSq*pi))*exp(-dxixjSq/twoSigmaSq)
   
   weeks = c(0, seq(0.5, min(endTime-0.5, 69.5)))
   out = matrix(weeks, nrow=length(weeks), ncol=(simCount+1))
