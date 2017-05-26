@@ -29,8 +29,8 @@ end
 
 
 function llRatio_mu(mu, muStar, theta, sigma, tau, dst; 
-                        Tlast=30.0, mu_a=0.7, mu_b=0.004)
-    muPrior = Gamma(mu_a, mu_b)
+                        Tlast=30.0, mu_a=0.6893886, mu_b=0.004766281)
+    muPrior = Gamma(mu_a, 1./mu_b)
     
     tauLessTIndex = find(x-> x<=Tlast, tau)
     tauGreaterTIndex = find(x-> x>Tlast, tau)
@@ -170,7 +170,7 @@ end
 function llRatio_theta(theta, thetaStar, mu, tau, sigma, gaussian_t, dst; 
                          Tlast=30.0, theta_a=0.8, theta_b=10.0)
     
-    thetaPrior = Gamma(theta_a, theta_b)
+    thetaPrior = Gamma(theta_a, 1./theta_b)
     dllTerm1 = getSumLessT_theta(theta, thetaStar, mu, tau, sigma, gaussian_t, 
                                         dst, Tlast)
     
