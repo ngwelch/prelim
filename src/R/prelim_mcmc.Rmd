@@ -21,36 +21,10 @@ library(gridExtra)
 library(gridBase)
 library(grid)
 library(raster)
+library(coda)
 #rmarkdown::render()
 ```
 
-## Chain Evaluation
-```{r}
-results = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")
-accept_results = read.csv(file="~/prelim/data/mcmc_chain_metrics_julia.csv")
-number_of_trials = nrow(results)
-```
-
-```{r}
-p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=mu))+theme_bw()
-p
-ggsave(filename="/Users/nwelch/prelim/report/figures/mu_mcmc_chain.png", p, 
-       dpi=300, height=4, width=6)
-```
-
-```{r}
-p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=theta))+theme_bw()
-p
-ggsave(filename="/Users/nwelch/prelim/report/figures/theta_mcmc_chain.png", p, 
-       dpi=300, height=4, width=6)
-```
-
-```{r}
-p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=sigma))+theme_bw()
-p
-ggsave(filename="/Users/nwelch/prelim/report/figures/sigma_mcmc_chain.png", p, 
-       dpi=300, height=4, width=6)
-```
 ## Figure Reproduction
 
 ```{r}
@@ -108,24 +82,26 @@ names(tmp) = names(infectionData)
 df = rbind(tmp, infectionData)
 write.csv(df, file="/Users/nwelch/prelim/data/plantData.csv", row.names=FALSE)
 
-dst = pointDistance(df[,c('x', 'y')], longlat=FALSE)
-write.csv(dst, file="/Users/nwelch/prelim/data/plantDistance.csv", 
+xi = df$x + 1.0i*df$y
+dxixj = Mod(outer(xi, xi, FUN="-"))
+write.csv(dxixj, file="/Users/nwelch/prelim/data/dxixj.csv", 
           row.names=FALSE)
 ```
 
 # Create Test Data Set
 The following codes create a test set that is a small sample of the data from the field. The ideas is that this data offers a reasonably computable sample that should lead us to somewhat reasonable estimates of the full data set parameter values. 
 ```{r}
-xLimit = round(max(df$x)*sqrt(0.1))
-yLimit = round(max(df$y)*sqrt(0.1))
-testPlants = which((df$x <= xLimit) & (df$y <= yLimit))
+reLimit = max(Re(xi))*sqrt(0.1)
+imLimit = max(Im(xi))*sqrt(0.1)
+xiSample = xi[Re(xi)<=reLimit & Im(xi)<=imLimit]
+testPlants = which((df$x <= reLimit) & (df$y <= imLimit))
 dfTest = df[testPlants,]
 
 write.csv(dfTest, file="/Users/nwelch/prelim/data/plantDataTest.csv",
           row.names=FALSE)
 
-dfTestDist = pointDistance(dfTest[,c('x', 'y')], longlat=FALSE)
-write.csv(dfTestDist, file="/Users/nwelch/prelim/data/plantDistanceTest.csv",
+dxixjSample = Mod(outer(xiSample, xiSample, FUN="-"))
+write.csv(dxixjSample, file="/Users/nwelch/prelim/data/dxixjTest.csv",
           row.names=FALSE)
 ```
 
@@ -205,6 +181,58 @@ tmp = xtable(tmp, caption = "Table with xtable")
 
 print(tmp, add.to.row = addtorow, hline.after=c(-1, 0, nrow(tmp)),
       sanitize.colnames.function = function(x) {x})
+```
+## MCMC Chain Evaluation
+```{r}
+fullChain = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")
+results = tmp[5000:nrow(fullChain),]
+accept_results = read.csv(file="~/prelim/data/mcmc_chain_metrics_julia.csv")
+number_of_trials = nrow(results)
+accept_results
+```
+
+```{r}
+p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=mu))+theme_bw()
+p
+ggsave(filename="/Users/nwelch/prelim/report/figures/mu_mcmc_chain.png", p, 
+       dpi=300, height=4, width=6)
+```
+
+```{r}
+p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=theta))+theme_bw()
+p
+ggsave(filename="/Users/nwelch/prelim/report/figures/theta_mcmc_chain.png", p, 
+       dpi=300, height=4, width=6)
+```
+
+```{r}
+p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=sigma))+theme_bw()
+p
+ggsave(filename="/Users/nwelch/prelim/report/figures/sigma_mcmc_chain.png", p, 
+       dpi=300, height=4, width=6)
+```
+### Convergence Tests
+```{r}
+MCMC.chain1 = mcmc(data=results[,c('mu', 'sigma', 'theta')], 
+                   start = 1, end = nrow(results), thin = 1)
+plot(MCMC.chain1, trace = T, density = TRUE, smooth = TRUE)
+```
+
+```{r}
+plot(MCMC.chain1, trace = T, density = TRUE, smooth = TRUE)
+```
+
+```{r}
+cumuplot(MCMC.chain1, probs=c(0.025,0.5,0.975))
+```
+```{r}
+autocorr(MCMC.chain1, lags = c(0, 1, 5, 10, 50, 100))
+autocorr.plot(MCMC.chain1, lag.max=100, auto.layout = TRUE, ask = TRUE)
+```
+```{r}
+effectiveSize(MCMC.chain1)
+geweke.diag(MCMC.chain1, frac1=0.1, frac2=0.5)
+raftery.diag(MCMC.chain1, q=0.95, r=0.01, s=0.95, converge.eps=0.001)
 ```
 
 ```{r, echo=FALSE}

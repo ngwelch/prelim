@@ -7,7 +7,7 @@ get_mu_a = function(B, alpha=0.05){
   return(a)
 }
 
-get_mu_dtail = function(B, xmax=630, alpha=0.05){
+get_mu_dtail = function(B, xmax=70, alpha=0.05){
   a = get_mu_a(B, alpha)
   
   tailProb = 0
@@ -21,6 +21,10 @@ get_mu_dtail = function(B, xmax=630, alpha=0.05){
 }
 
 b = uniroot(get_mu_dtail, c(0.0001, 10), tol=.Machine$double.eps^0.5)
+mu_shape = get_mu_a(b$root)
+mu_rate = b$root
+mu_mode = (mu_shape-1)/mu_rate
+curve(dgamma(x, shape=mu_shape, rate=mu_rate), from=0.01, to=80)
 
 q=c(0.025, 0.975)
 replicatedQuantile = qgamma(q, shape=get_mu_a(b$root), rate=b$root)
@@ -39,6 +43,7 @@ tmp = xtable(muPriorTable, caption = "")
 print(tmp)
 
 # sigma prior
+qgamma(c(0.025,0.975), shape=0.75, scale=16)
 geta = function(a,b=10){
   3.9*(gamma(a) - pgamma(b*0.1,a, lower=F)*gamma(a))-gamma(a)+pgamma(b*50,a, lower=F)*gamma(a)
 }
@@ -67,6 +72,7 @@ coverage = coverage[coverage$abCoversIt==TRUE,]
 weakestSigmaPrior = coverage[which.max(coverage$a*(coverage$b**2)),]
 
 # theta prior
+qgamma(c(0.025, 0.975), shape=0.76, rate=0.0495)
 source('~/prelim/src/R/simulation.R')
 tmp = read.csv(file="/Users/nwelch/prelim/data/plantData.csv")[,c('x', 'y')]
 tmp = sort(unique(tmp$x + 1.0i*tmp$y))
