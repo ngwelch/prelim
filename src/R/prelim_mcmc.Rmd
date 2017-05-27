@@ -185,14 +185,16 @@ print(tmp, add.to.row = addtorow, hline.after=c(-1, 0, nrow(tmp)),
 ## MCMC Chain Evaluation
 ```{r}
 fullChain = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")
-results = tmp[5000:nrow(fullChain),]
+results = fullChain[10000:nrow(fullChain),]
 accept_results = read.csv(file="~/prelim/data/mcmc_chain_metrics_julia.csv")
 number_of_trials = nrow(results)
 accept_results
 ```
 
 ```{r}
-p = ggplot(results) + geom_path(aes(x=1:number_of_trials, y=mu))+theme_bw()
+p = ggplot(results) + 
+  geom_path(aes(x=1:number_of_trials, y=mu)) +
+  theme_bw()
 p
 ggsave(filename="/Users/nwelch/prelim/report/figures/mu_mcmc_chain.png", p, 
        dpi=300, height=4, width=6)
@@ -213,26 +215,32 @@ ggsave(filename="/Users/nwelch/prelim/report/figures/sigma_mcmc_chain.png", p,
 ```
 ### Convergence Tests
 ```{r}
-MCMC.chain1 = mcmc(data=results[,c('mu', 'sigma', 'theta')], 
+MCMC.chain = mcmc(data=results[,c('mu', 'sigma', 'theta')], 
                    start = 1, end = nrow(results), thin = 1)
-plot(MCMC.chain1, trace = T, density = TRUE, smooth = TRUE)
 ```
 
 ```{r}
-plot(MCMC.chain1, trace = T, density = TRUE, smooth = TRUE)
+plot(MCMC.chain, trace = T, density = TRUE, smooth = TRUE)
 ```
 
 ```{r}
-cumuplot(MCMC.chain1, probs=c(0.025,0.5,0.975))
+chainTail = (number_of_trials-1e4):number_of_trials
+cumuplot(MCMC.chain[chainTail,], probs=c(0.025,0.5,0.975))
 ```
 ```{r}
-autocorr(MCMC.chain1, lags = c(0, 1, 5, 10, 50, 100))
-autocorr.plot(MCMC.chain1, lag.max=100, auto.layout = TRUE, ask = TRUE)
+autocorr(MCMC.chain, lags = c(0, 1, 5, 10, 30))
+autocorr.plot(MCMC.chain, lag.max=30, auto.layout = TRUE, ask = TRUE)
 ```
 ```{r}
-effectiveSize(MCMC.chain1)
-geweke.diag(MCMC.chain1, frac1=0.1, frac2=0.5)
-raftery.diag(MCMC.chain1, q=0.95, r=0.01, s=0.95, converge.eps=0.001)
+effectiveSize(MCMC.chain)
+
+geweke.diag(MCMC.chain, frac1=0.1, frac2=0.5)
+
+raftery.diag(MCMC.chain, q=0.95, r=0.01, s=0.95, converge.eps=0.001)
+```
+```{r}
+thin = round(number_of_trials / min(effectiveSize(MCMC.chain)))
+thinResults = results[seq(1, number_of_trials, thin),]
 ```
 
 ```{r, echo=FALSE}

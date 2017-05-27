@@ -1,4 +1,4 @@
-dst = read.csv(file="/Users/nwelch/prelim/data/plantDistance.csv")
+dst = read.csv(file="/Users/nwelch/prelim/data/dxixjTest.csv")
 
 
 ##############################################################################
@@ -9,9 +9,9 @@ scalarEpiSim = function(sigma=1.1, mu=0.0028, theta=0.11,
                   startTime=0, endTime=30, susceptableAtStart=rep(TRUE,nrow(dst)), 
                   dxixj=dst, N=nrow(dst), simCount=1, returnSummary=TRUE){
   
-  dxixjSq = dxixj**2
+  dstSq = dxixj**2
   twoSigmaSq = 2*(sigma**2)
-  thetafxixj = (theta/(twoSigmaSq*pi))*exp(-dxixjSq/twoSigmaSq)
+  thetafxixj = (theta/(twoSigmaSq*pi))*exp(-dstSq/twoSigmaSq)
   
   weeks = c(0, seq(0.5, min(endTime-0.5, 69.5)))
   out = matrix(weeks, nrow=length(weeks), ncol=(simCount+1))
@@ -61,7 +61,11 @@ scalarEpiSim = function(sigma=1.1, mu=0.0028, theta=0.11,
   }
 }
 
-oneSim = scalarEpiSim()
+oneSim = scalarEpiSim(mu=0.004274672,
+                      sigma=1.229166,
+                      theta=0.1180905,
+                      simCount=1000)
+hist(colSums(oneSim[,-1]), breaks=30)
 timeSim = scalarEpiSim(returnSummary = FALSE)
 
 ### Sampler that runs over a vector of parameter values

@@ -77,49 +77,37 @@ source('~/prelim/src/R/simulation.R')
 tmp = read.csv(file="/Users/nwelch/prelim/data/plantData.csv")[,c('x', 'y')]
 tmp = sort(unique(tmp$x + 1.0i*tmp$y))
 xi = tmp[Re(tmp)<=4.5 & Im(tmp)<=1]
-dxixj = Mod(outer(xi, xi, FUN="-"))
+ninedxixj = Mod(outer(xi, xi, FUN="-"))
 
 it=1
-shape_sigma = seq(0.4, 0.6, by=0.1)
-scale_sigma = seq(90, 105, by=1)
-sigmaParLength = length(shape_sigma)*length(scale_sigma)
+alpha = seq(0.1, 1, 0.1)
+beta_rate = seq(0.001, 0.5, 0.01)
+coverage = matrix(0, nrow=length(alpha)*length(beta_rate), ncol=3)
+colnames(coverage) = c("alpha", "beta_rate", "cover")
+sampleSize=100
 
-shape_theta = seq(0.5, 0.9, by=0.1)
-rate_theta = seq(0.1)
-thetaParLength = length(shape_theta)*length(rate_theta)
-
-coverage = matrix(0, nrow=sigmaParLength*thetaParLength, ncol=5)
-colnames(coverage) = c("shape_sigma", "scale_sigma", 
-                       "shape_theta", "rate_theta", 
-                       "cover")
-sampleSize=5
-
-#parameterShape = sigmaParLength*thetaParLength
-#theta = seq(0.05, 0.2, by=0.01)
-#52.6225#seq(0.5, 2, by=0.05)
-#sigma = sort(rgamma(10, shape=0.5, scale=100))
-
-
-#out = array(dim=c(sampleSize,9,length(theta)))
-
-for(th in theta){
-  for(s in sigma){
-    betweenDay1And448=0
-    for(i in 1:sampleSize){
-      for(j in 1:9){
-        seed = rep(TRUE, nrow(dxixj))
-        seed[j] = FALSE
-        infDay = scalarEpiSim(sigma=s, mu=1e-5, theta=th,
+for(a in alpha){
+  for(b in beta_rate){
+    betweenDay1And480=0
+    for(th in rgamma(sampleSize, shape=a, rate=b)){
+      for(s in 1:9){
+        seed = rep(TRUE, nrow(ninedxixj))
+        seed[s] = FALSE
+        infDay = scalarEpiSim(sigma=1, mu=1e-5, theta=th,
                               startTime=0, endTime=Inf, susceptableAtStart=seed, 
-                              dxixj=dxixj, N=9, simCount=1, returnSummary=FALSE)*7
+                              dxixj=ninedxixj, N=9, simCount=1, returnSummary=FALSE)*7
         nextInfDay = min(infDay[infDay>0], na.rm=TRUE)
-        betweenDay1And448 = betweenDay1And448+(nextInfDay>=1 & nextInfDay<=448)
+        betweenDay1And480 = betweenDay1And480+(nextInfDay>=1 & nextInfDay<=480)
       }
     }
-    coverage[it,] = c(th, s, betweenDay1And448/(9*sampleSize))
+    coverage[it,] = c(a, b, betweenDay1And480/(9*sampleSize))
     it = it+1
   }
 }
+
 coverage = as.data.frame(coverage)
-candidateMeans = coverage[round(coverage$cover,2)==0.95,]
+coverage = coverage[order(coverage$cover, decreasing=TRUE),]
+dci=0.005
+tmp = coverage[coverage$cover<(0.95+dci) & coverage$cover>(0.95-dci),]
+candidateMeans = tmp[order(tmp$cover, decreasing=TRUE),]
 colMeans(candidateMeans)
