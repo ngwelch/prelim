@@ -1,13 +1,16 @@
-dst = read.csv(file="/Users/nwelch/prelim/data/dxixjTest.csv")
-
-
 ##############################################################################
 ########################## Epidemic Simulation ###############################
 ##############################################################################
+
 ### Simulated Epidemic Function
-scalarEpiSim = function(sigma=1.1, mu=0.0028, theta=0.11,
-                  startTime=0, endTime=30, susceptableAtStart=rep(TRUE,nrow(dst)), 
-                  dxixj=dst, N=nrow(dst), simCount=1, returnSummary=TRUE){
+scalarEpiSim = function(mu=0.0028, sigma=1.1, theta=0.11,
+                  startTime=0, endTime=30, dxixj, susceptableAtStart=NULL, 
+                  simCount=1, returnSummary=TRUE){
+  
+  N=nrow(dxixj)
+  if(length(susceptableAtStart)==0){
+    susceptableAtStart=rep(TRUE,nrow(dxixj))
+  }
   
   dstSq = dxixj**2
   twoSigmaSq = 2*(sigma**2)
@@ -18,16 +21,22 @@ scalarEpiSim = function(sigma=1.1, mu=0.0028, theta=0.11,
 
   # Force only one sim if the goal is to simulate infection times
   if(!returnSummary){simCount=1}
+  getRates = function(r){
+    rates = suppressWarnings(rexp(N, r))
+    rates
+  } 
   for(s in 1:simCount){
     
     origInfTimes = Inf
     if(sum(susceptableAtStart==FALSE)>0){
       ratesAtInfectedPlants = thetafxixj[,!susceptableAtStart, drop=FALSE]
-      sampleNewInfTimes = apply(ratesAtInfectedPlants, 2, function(r) rexp(N, r))
+      ratesAtInfectedPlants[ratesAtInfectedPlants<.Machine$double.xmin]=2*.Machine$double.xmin
+      sampleNewInfTimes = apply(ratesAtInfectedPlants, 2, getRates)
       origInfTimes = startTime + sampleNewInfTimes
     }
     
-    infTime = pmin(startTime + rexp(N, mu), origInfTimes, endTime)
+    timeToNextInfection = cbind(startTime + rexp(N, mu), origInfTimes, endTime)
+    infTime = apply(timeToNextInfection, 1, min)
     susceptibles = which((infTime < endTime) & susceptableAtStart)
     
     while(length(susceptibles)){
@@ -36,7 +45,7 @@ scalarEpiSim = function(sigma=1.1, mu=0.0028, theta=0.11,
       currentPlant = susceptibles[which.min(infTime[susceptibles])]
       currentPlantRates = thetafxixj[,currentPlant]
       
-      nextInfectionTime = rexp(N, currentPlantRates)
+      nextInfectionTime = suppressWarnings(rexp(N, currentPlantRates))
       nextInfectionTime[is.na(nextInfectionTime)] = Inf
       infTime = pmin(infTime, currentTime + nextInfectionTime)
       susceptibles = which((infTime < endTime) & (infTime > currentTime) & 
@@ -61,17 +70,16 @@ scalarEpiSim = function(sigma=1.1, mu=0.0028, theta=0.11,
   }
 }
 
-oneSim = scalarEpiSim(mu=0.004274672,
-                      sigma=1.229166,
-                      theta=0.1180905,
-                      simCount=1000)
-hist(colSums(oneSim[,-1]), breaks=30)
-timeSim = scalarEpiSim(returnSummary = FALSE)
 
 ### Sampler that runs over a vector of parameter values
 vectorEpiSim = function(muSigmaThetaVector, startTime=0, endTime=30, 
-                        susceptableAtStart=rep(TRUE,nrow(dst)), dxixj=dst, 
-                        N=nrow(dst), simCount=1, returnSummary=TRUE){
+                        susceptableAtStart=NULL, dxixj, 
+                        simCount=1, returnSummary=TRUE){
+  
+  N=nrow(dxixj)
+  if(length(susceptableAtStart)==0){
+    susceptableAtStart=rep(TRUE,nrow(dxixj))
+  }
   
   if(returnSummary){
     result = NULL
@@ -79,8 +87,8 @@ vectorEpiSim = function(muSigmaThetaVector, startTime=0, endTime=30,
       mu = muSigmaThetaVector[s,1]
       sigma = muSigmaThetaVector[s,2]
       theta = muSigmaThetaVector[s,3]
-      sim = scalarEpiSim(sigma, mu, theta, startTime, endTime, susceptableAtStart,
-                         dxixj, N, simCount, returnSummary=TRUE)
+      sim = scalarEpiSim(mu, sigma, theta, startTime, endTime, dxixj,
+                         susceptableAtStart, simCount, returnSummary=TRUE)
       
       if(s>1){
         result = cbind(result, sim[,-1, drop=FALSE])
@@ -100,8 +108,8 @@ vectorEpiSim = function(muSigmaThetaVector, startTime=0, endTime=30,
       mu = muSigmaThetaVector[s,1]
       sigma = muSigmaThetaVector[s,2]
       theta = muSigmaThetaVector[s,3]
-      sim = scalarEpiSim(sigma, mu, theta, startTime, endTime, susceptableAtStart,
-                         dxixj, N, simCount=1, returnSummary=FALSE)
+      sim = scalarEpiSim(mu, sigma, theta, startTime, endTime, dxixj,  
+                         susceptableAtStart, simCount=1, returnSummary=FALSE)
       out=cbind(out, sim)
     }
     colnames(out) = paste0("sim", 1:nrow(muSigmaThetaVector))
@@ -109,15 +117,10 @@ vectorEpiSim = function(muSigmaThetaVector, startTime=0, endTime=30,
   return(data.frame(out))
 }
 
-u = c(0.0028, 0.0025, 0.003)
-s = c(1.1, 1.15, 1.08)
-t = c(0.11, 0.08, 0.15)
-vecSim = vectorEpiSim(muSigmaThetaVector=cbind(u,s,t), simCount=100)
-
-
 ##############################################################################
 ########################## Posterior Sampler #################################
 ##############################################################################
+
 postEpiSim = function(tau){
   
   # create an index and count up number of infections per index interval
@@ -136,19 +139,6 @@ postEpiSim = function(tau){
   # return both results in the same matrix
   rbind(weeks, postCI, post)
 }
-
-sampleTau = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")[,1:34]
-pstSim = postEpiSim(sampleTau)
-
-par(mfcol=c(1,2), mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
-matplot(x=pstSim['weeks',], y=t(pstSim[5:200,]), type='l', lty=3, col="#50505030",
-        ylab="infections per week", xlab="week")
-matlines(x=pstSim['weeks',], y=t(pstSim[2:4,]), col='black', lty=c(1,2,2), lwd=3)
-
-matplot(x=vecSim$week, y=vecSim[,5:ncol(vecSim)], type='l', lty=3, col="#50505030",
-        ylab="infections per week", xlab="week")
-matlines(x=vecSim$week, y=vecSim[,2:4], col='black', lty=c(1,2,2), lwd=3)
-par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
 
 ##############################################################################
 ############################ Density Plots ###################################

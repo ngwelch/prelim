@@ -81,27 +81,30 @@ ninedxixj = Mod(outer(xi, xi, FUN="-"))
 
 it=1
 alpha = seq(0.1, 1, 0.1)
-beta_rate = seq(0.001, 0.5, 0.01)
-coverage = matrix(0, nrow=length(alpha)*length(beta_rate), ncol=3)
-colnames(coverage) = c("alpha", "beta_rate", "cover")
+beta_rate = seq(0.025, 0.5, 0.05)
+sigma = seq(0.5, 1.5, 0.1)
+coverage = matrix(0, nrow=length(alpha)*length(beta_rate)*length(sigma), ncol=4)
+colnames(coverage) = c("alpha", "beta_rate", "sigma", "cover")
 sampleSize=100
 
 for(a in alpha){
   for(b in beta_rate){
-    betweenDay1And480=0
-    for(th in rgamma(sampleSize, shape=a, rate=b)){
-      for(s in 1:9){
-        seed = rep(TRUE, nrow(ninedxixj))
-        seed[s] = FALSE
-        infDay = scalarEpiSim(sigma=1, mu=1e-5, theta=th,
-                              startTime=0, endTime=Inf, susceptableAtStart=seed, 
-                              dxixj=ninedxixj, N=9, simCount=1, returnSummary=FALSE)*7
-        nextInfDay = min(infDay[infDay>0], na.rm=TRUE)
-        betweenDay1And480 = betweenDay1And480+(nextInfDay>=1 & nextInfDay<=480)
+    for(s in sigma){
+      betweenDay1And480=0
+      for(th in rgamma(sampleSize, shape=a, rate=b)){
+        for(plant in 1:9){
+          seed = rep(TRUE, nrow(ninedxixj))
+          seed[plant] = FALSE
+          infDay = scalarEpiSim(sigma=s, mu=1e-5, theta=th,
+                                startTime=0, endTime=Inf, susceptableAtStart=seed, 
+                                dxixj=ninedxixj, N=9, simCount=1, returnSummary=FALSE)*7
+          nextInfDay = min(infDay[infDay>0], na.rm=TRUE)
+          betweenDay1And480 = betweenDay1And480+(nextInfDay>=1 & nextInfDay<=480)
+        }
       }
+      coverage[it,] = c(a, b, s, betweenDay1And480/(9*sampleSize))
+      it = it+1
     }
-    coverage[it,] = c(a, b, betweenDay1And480/(9*sampleSize))
-    it = it+1
   }
 }
 
