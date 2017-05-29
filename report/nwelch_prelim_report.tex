@@ -256,12 +256,12 @@ This makes sense in the context of the derivation.
 In summary, many priors satisfied the specification criteria used by the authors and some were less informative than $\theta \sim \Gamma(0.8, \text{rate}=0.1)$, but there was no compelling result that suggesting a departure from the published result. 
 
 \subsubsection{$\boldsymbol{\sigma}$ Prior Predictive Distribution Specification}
-\textbf{[This is still a mess. Running out of time to correct these guys' errors. Circle back.]}
-
-\citet{Brown} proposes a prior for $\sigma$ (the standard deviation that a particular aphid travels in one week) that includes 0.1 meters at the 2.5\% and 500 meters at the 95.5\%. 
-However, this specification is problematic as 50 meters is the greatest distance between any pair of plants in the plantation data under consideration. 
-Furthermore, specifying the 2.5-95.5\% quantile suggests a 93\% prior prediction interval. 
-Both of these values are assumed to be typographic errors and were instead assumed to suggest a distribution for $\sigma$ that leads to a prior whose 2.5\% quantile is 0.1 meters and 97.5\% quantile is 50 meters. 
+$\sigma^2$ denotes the variance of the distance an aphid travels in a week. 
+Considering that the distance traveled is modeled as Brownian motion with a zero mean bivariate normal kernel, a 95\% confidence interval for the distance traveled after one week corresponds to an aphid traveling $2\sigma$ at the 97.5\% quantile. 
+With this understanding, $\sigma \sim \Gamma(0.5, \text{scale}=100)$ implies that an aphid travels between $2\sigma_{0.025} \approx 0.1$ meters at the 2.5\% quantile and $2\sigma_{0.975} \approx 500$ meters at the 97.5\% quantile of the prior distribution. 
+While this prior does have large variance and therefore leads to a weakly informative prior for $\sigma$, the most distant points in the field under consideration are separated by approximately 56 meters. 
+A prior with $\sigma \sim \Gamma(0.73, \text{scale}=9)$ would be more physically appropriate. 
+Under this prior, $2\sigma_{0.025} \approx 0.1$ meters and $2\sigma_{0.975} \approx 56$ meters. 
 
 \subsection{Inference}
 \label{inference}
@@ -337,11 +337,25 @@ Figures \ref{fig:mu_density} and \ref{fig:sigmaTheta} also suggest that there ar
 The 55,000 samples remaining were thinned to obtain a 5,000 observation sample after reviewing the autocorrelation function charts and statistics. 
 This post-processed sample is what is shown in figure \ref{fig:muSigmaThetaDensities}. 
 
-Comparing \ref{fig:mu_density} to the same result reported in \citet{Brown} suggests a significant disagreement. 
+Comparing \ref{fig:mu_density} to the same result reported in \citet{Brown} suggests some discrepancies in the results. 
 Wider confidence intervals for the parameter samples should be expected since the results here arise from a10\% sample while \cite{Brown}'s results were derived for all available data, but the differences are remarkable. 
-The medians of $\theta$ and $\sigma$ seem well-aligned to \citet{Brown}'s findings, but that does not seem to be the case for $\mu$. 
-It is in fact a good sign that the results for $\mu$ do not agree. 
-Each of the 
+The medians of $\theta$ and $\sigma$ seem well-aligned to the authors' findings, but that does not seem to be the case for $\mu$. 
+In fact, it is a good sign that the results for $\mu$ do not agree. 
+The prior for $\mu$ was derived under the rate parameterization. 
+However, the published source code indicates that the $\mu$ prior was coded with scale parameterization without adjusting the parameters.
+As a result, the error leads to a highly informative prior and the figure presented in the original paper suggests that the data may have been heavily influenced by this prior. 
+In this case, the prior should have pulled the posterior parameter distribution lower than what would be expected from a weak or noninformative prior. 
+This last point is critical. 
+
+If a highly informative prior was used, then the density plot in \citet{Brown}'s figure 2a should reflect this fact. 
+The figure does not indicate a highly informative prior but suggests instead that a weak prior was used as described. 
+Reviewing the codes for the figures published revealed a second bug. 
+The  $\mu$ density plot published was produced by a third distribution, $\Gamma(0.7, 0.7)$ and appears to result from a second coding error. 
+
+The results in figure (\ref{fig:theta_density}) and (\ref{fig:sigma_density}) are consistent with the the authors' findings, but finding the right proposal concentration parameters to obtain convergence was a challenge and required several trial runs. 
+Getting $\sigma$ to converge was especially challenging. 
+Figures (\ref{fig:muSigma}) - (\ref{fig:sigmaTheta}) show pairwise scatter plots of the parameters. 
+These plots are useful to assessing convergence and the 50\%, 80\%, and 95\% point-wise confidence bands  tended to include jagged boundaries when at least one convergence diagnostic indicated problems. 
 
 \begin{figure}[H]
 	\centering
@@ -601,12 +615,21 @@ As a result, $\sigma$ is the only prior properly encoded.
 \end{figure} 
 
 \begin{figure}[H]
-\centering
-\includegraphics[height=0.26\linewidth, keepaspectratio]{figures/brown_figure_2a.png}
-\caption{Range of $\mu$ prior, truncated posterior sample $\mu$, and posterior sample $\mu$ published in \citet{Brown}}
-\label{fig:prior_mu_plot}
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\includegraphics[width=\textwidth]{figures/brown_figure_2a.png}
+		\caption{}
+		\label{fig:brown2a}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.49\textwidth}
+		\includegraphics[width=\textwidth]{figures/rate_v_scale_plot.png}
+		\caption{}
+		\label{fig:welch2a}
+	\end{subfigure}
+	\caption{(\subref{fig:brown2a}) Range of $\mu$ prior, truncated posterior sample $\mu$, and posterior sample $\mu$ published in \citet{Brown}; (\subref{fig:welch2a}) Comparison of figure production error, correct gamma prior parameterization, and gamma scale parameterization }
+	\label{fig:figError}
 \end{figure} 
-
 
 \end{document}
 
