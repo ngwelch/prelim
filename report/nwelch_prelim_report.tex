@@ -37,7 +37,7 @@ This paper aims to conduct statistical inference for parameters of an individual
 Individual level models have the capacity to reflect spatial and temporal influences on disease propagation among infected and susceptible individuals.
 A simple individual level model is derived and fit to data collected during an insect infestation of a sugar cane field.
 Model parameters are estimated using the Metropolis sampling algorithm; however, the computational burden created by fitting even a simple model leads to prohibitively long computation times. 
-\textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data} \citep{Brown} fit a model to the same data. 
+\citet{Brown}, in their article \textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data}, fit a model to the same data. 
 The authors offer mathematical and computational insights to improve computation time, but errors in the published Metropolis algorithm source code led the authors to inferences and conclusions unsupportable with the data alone. 
 \end{abstract}
 
@@ -49,9 +49,9 @@ Improving our understanding of these parameters will lead to more effective resp
 
 \citet{Brown} set out to conduct statistical inference for a simple class of disease propagation models by estimating the risk that a susceptible individual contracts a disease from an infected member of the population. 
 In these models, the risk of contracting the disease is modeled at the individual level rather than for the population as a whole. 
-The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individuals  exposure to those infected. 
+The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individuals\vmadd{'}  exposure to those infected. 
 While this model is conceptually convenient, the computational complexity and limitations of algorithms capable of fitting such a model create significant challenges.
-In \citet{Brown}, the authors appeal to standard likelihood methods and the Metropolis algorithm \citep{Metropolis} to estimate the parameters of a simple individual level model (ILM) for disease propagation.
+\citet{Brown} appeal to standard likelihood methods and the Metropolis algorithm \citep{Metropolis} to estimate the parameters of a simple individual level model (ILM) for disease propagation.
 The emphasis on basic components like the Metropolis sampler and simple disease model focuses readers on common challenges inherent with data for statistical inference with infectious disease data. 
 
 \subsection{Literature Review}
@@ -62,16 +62,16 @@ It also assumes complete data are available to fit these early models.
 \citet{Becker} surveys a number of models and the types of data sets these models can accommodate. 
 His work highlights the distinction between studying disease spread from a mathematical perspective as apposed to a statistical inference point of view and summarizes the principle challenges that disease propagation presents to many statistical methods.
 
-\citet{ONeill} builds on the idea that one does not have to choose between parameter inference and mathematical insight. 
+\citet{ONeill} build\vmdel{s} on the idea that one does not have to choose between parameter inference and mathematical insight. 
 In fact, the authors show that a basic Metropolis-Hastings algorithm clears the way for more realistic modeling assumptions and interdependencies. 
-\citet{Jewell} provides an updated perspective and outlines several MCMC design patterns for convoluted models.
-\citet{Brown} primarily contributes another example of these methods along with computational efficiencies beyond an MCMC framework. 
+\citet{Jewell} provide\vmdel{s} an updated perspective and outlines several MCMC design patterns for convoluted models.
+\citet{Brown} primarily contribute\vmdel{s} another example of these methods along with computational efficiencies beyond an MCMC framework. 
 
 While improved computation power made it possible to fit more complex statistical disease models, evaluating likelihood functions that include spatio-temporal components becomes challenging when there are more than a few observations. 
 As the cost to evaluate the likelihood function grows with the number of observations, the utility of MCMC approaches declines.
-\citet{McKinley} proposes Approximately Bayesian Computation (ABC) that avoids calculating the likelihood by generating an approximation to the likelihood function with each pass through an MCMC implementation. 
+\citet{McKinley} propose\vmdel{s} Approximately Bayesian Computation (ABC) that avoids calculating the likelihood by generating an approximation to the likelihood function with each pass through an MCMC implementation. 
 \citet{Diggle} forgoes the complexity of full likelihood inference and instead appeals to the partial likelihood function to carry out inference for the parameters of interest. 
-\citet{Deardon} uses a Taylor series to approximate infection kernel function to make a Bayesian approach computationally practical. 
+\citet{Deardon} use\vmdel{s} a Taylor series to approximate infection kernel function to make a Bayesian approach computationally practical. 
 These methods led to reduced computation times compared to a full MCMC implementation, but each either require either completely observed data or are too closely associated with a particular model to be widely applicable.
 
 \subsection{Statistical Problem}
@@ -97,7 +97,8 @@ The plot on the right shows the cumulative number of infected plants after each 
 		\caption{}
 		\label{fig:cum_infection}
 	\end{subfigure}
-	\caption{(\subref{fig:plants}) Plant locations (meters) and infection status (black=infected) after 30 weeks; (\subref{fig:cum_infection}) number of infected plants at each inspection time}
+	\caption{(\subref{fig:plants}) Plant locations (meters) and infection status (black=infected) after 30 weeks; (\subref{fig:cum_infection}) number of infected plants at each inspection time. 
+	\vmcomment{Explain the blue box here?}}
 	\label{fig:data_plot}
 \end{figure} 
 
