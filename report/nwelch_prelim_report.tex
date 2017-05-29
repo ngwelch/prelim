@@ -38,7 +38,7 @@ Individual level models have the capacity to reflect spatial and temporal influe
 A simple individual level model is derived and fit to data collected during an insect infestation of a sugar cane field.
 Model parameters are estimated using the Metropolis sampling algorithm; however, the computational burden created by fitting even a simple model leads to prohibitively long computation times. 
 \textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data} \citep{Brown} fit a model to the same data. 
-The authors offer mathematical and computational insights to improve computation time, but errors in the published Metropolis algorithm source code led the authors to inferences and conclusions unsupportable by the data. 
+The authors offer mathematical and computational insights to improve computation time, but errors in the published Metropolis algorithm source code led the authors to inferences and conclusions unsupportable with the data alone. 
 \end{abstract}
 
 \section{Introduction}
@@ -254,6 +254,8 @@ This makes sense in the context of the derivation.
 In summary, many priors satisfied the specification criteria used by the authors and some were less informative than $\theta \sim \Gamma(0.8, \text{rate}=0.1)$, but there was no compelling result that suggesting a departure from the published result. 
 
 \subsubsection{$\boldsymbol{\sigma}$ Prior Predictive Distribution Specification}
+\textbf{[This is still a mess. Running out of time to correct these guys' errors. Circle back.]}
+
 \citet{Brown} proposes a prior for $\sigma$ (the standard deviation that a particular aphid travels in one week) that includes 0.1 meters at the 2.5\% and 500 meters at the 95.5\%. 
 However, this specification is problematic as 50 meters is the greatest distance between any pair of plants in the plantation data under consideration. 
 Furthermore, specifying the 2.5-95.5\% quantile suggests a 93\% prior prediction interval. 
@@ -262,7 +264,7 @@ Both of these values are assumed to be typographic errors and were instead assum
 \subsection{Inference}
 \label{inference}
 While adding latent variables denoting infection times made it possible to write the likelihood for $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
-The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the 583 unknown infection times in the full data set. 
+The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the unknown infection times in the full data set (583 times in the full data set). 
 Metropolis algorithms are well-suited for such parameterizations as several of the results reviewed in section \ref{literature_review} suggest.  
 In particular, the Metropolis-in-Gibbs implementation with a \textit{non-centering parameterization} used to fit a model to the plantation data is a special case of the algorithm described by \citet{Jewell} and briefly discussed in \citet{ONeill}.  
 
@@ -286,9 +288,12 @@ $$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,
 \end{enumerate}
 }
 The implementation for this model uses normally distributed proposals with means at the previous $\theta$, $\sigma$, $\mu$, and $\tau_i$ values. 
-The concentration parameters used for the proposal distributions were $ \nu_{\theta}=0.005^2$, $ \nu_{\mu}=0.0005^2$, $ \nu_{\sigma}=0.05^2$, and $ \nu_{\tau_i}=1$. 
+The concentration parameters used for the proposal distributions were $ \nu_{\mu}=0.0005^2$,  $ \nu_{\sigma}=0.55^2$, $\nu_{\theta}=0.05^2$, and $ \nu_{\tau_i}=1$. 
+These values were selected based on trace plots from the parameter samples, target acceptance ratio for each parameter (20-50\% objective), autocorrelation plots, and convergence diagnostic statistics, including the Geweke diagnostic. 
 
 \subsection{Implementation}
+\textbf{[Circle back to this.]}
+
 The full data set includes 583 unknown infection times recorded in one of 6 intervals over 30 weeks time. 
 As a result, some portion of the likelihood function has to be computed 586 times for each sweep through the sampler. 
 Implementing the algorithm naively leads to prohibitively long computation times. 
@@ -311,6 +316,31 @@ The other parallelization improvement results from recognizing that some updates
 As a result, proposals that would reverse this known ordering are rejected immediately. 
 
 \section{Results}
+The primary objective of this work was statistical inference for an ILM model that accounts for spatial and temporal influences in the underlying generative process. 
+The Metropolis algorithm was selected to fit this model, but computing times for the full data set using a traditional implementation led to prohibitively long computation times. 
+\citet{Brown} pursued several computational tools to fit a model to the full data set. 
+Following that path prematurely, however, became an exercise in computer science. 
+Computation times  in early prototypes improved with each suggestion implemented, but discrepancies in posterior parameter samples emerging from trial runs with the full data set led to increasingly complex unit testing and debugging schemes. 
+While computing times improved, time to complete prototyping runs was still prohibitively long and trends in the parameter samples were inconsistent with results reported in \citet{Brown}. 
+As a result, focus shifted from computation times to identification of discrepancies in the algorithm results. 
+Taking a 10\% sample of the full data set substantially reduced prototyping times; it also led to the discovery of bugs in \citet{Brown}'s implementations. 
+
+\textbf{[Re-run sampler with revised sigma proposal variance and several thousand more iterations; pull references for convergence tests too]}
+
+Figure \ref{fig:muSigmaThetaDensities} shows the results of 65,000 iterations through 174 plants sampled from the 1,742 plantation data set. 
+The first 10,000 iterations were discarded as burn-in trials based on inspection of the parameter trace plots. 
+Geweke's diagnostic was computed for the first 10\% and last half of the chains. 
+The results did not indicate a lack of convergence for any parameter ($z_{\mu} = -1.0321$, $z_{\sigma} = 0.9407$,  $z_{\theta} = 0.7115$); however, the Raftery-Lewis diagnostic indicated issues with $\sigma$'s convergence. 
+Figures \ref{fig:mu_density} and \ref{fig:sigmaTheta} also suggest that there are issues with $\sigma$ convergence. 
+The 55,000 samples remaining were thinned to obtain a 5,000 observation sample after reviewing the autocorrelation function charts and statistics. 
+This post-processed sample is what is shown in figure \ref{fig:muSigmaThetaDensities}. 
+
+Comparing \ref{fig:mu_density} to the same result reported in \citet{Brown} suggests a significant disagreement. 
+Wider confidence intervals for the parameter samples should be expected since the results here arise from a10\% sample while \cite{Brown}'s results were derived for all available data, but the differences are remarkable. 
+The medians of $\theta$ and $\sigma$ seem well-aligned to \citet{Brown}'s findings, but that does not seem to be the case for $\mu$. 
+It is in fact a good sign that the results for $\mu$ do not agree. 
+Each of the 
+
 \begin{figure}[H]
 	\centering
 	\begin{subfigure}[b]{0.3\textwidth}
@@ -349,7 +379,7 @@ As a result, proposals that would reverse this known ordering are rejected immed
 		\label{fig:sigmaTheta}
 	\end{subfigure} 
 	\caption{(\subref{fig:mu_density}) - (\subref{fig:sigma_density}) shows the parameter densities;  (\subref{fig:muSigma}) - (\subref{fig:sigmaTheta}) shows pairwise posterior samples }
-	\label{fig:sigmaTheta}
+	\label{fig:muSigmaThetaDensities}
 \end{figure} 
 
 
