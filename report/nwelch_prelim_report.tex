@@ -237,8 +237,21 @@ As a result, constructing a model with a subset of the data available or a diffe
 Priors for $\sigma$ and $\theta$ rely on environmental variables instead of the number of infections observed. 
 
 \subsubsection{$\boldsymbol{\theta}$ Prior Predictive Distribution Specification}
-The prior for $\theta$ was determined by considering the average time it takes an infected plant to infect a neighboring plant. 
+\citet{Brown} suggests that the $\theta$ prior was determined by considering the average time required to observe a new infection when an infected plant is surrounded by susceptible plants. 
+Simulations of the quantities described by the authors led to $\theta$ hyperparameters consistent with those suggested by the authors, but the differences were relatively substantial.
 
+The prior suggested by the authors was based on an interval that saw the average time to infection fall between 1 day at the 2.5\% quantile and 16 months (interpreted as 480 days) at the 97.5\% quantile. 
+With these endpoints, a grid over values of $\alpha_{\theta}$, $\beta_{\theta}$ (rate parameterization), and $\sigma$ was used to evaluate sample a distribution of infection times and estimate the mean time to the next infection, including the values reported by the authors. 
+500 samples were drawn from each $\Gamma(\alpha_{\theta}, \beta_{\theta, \text{rate}})$ over a series of simulations. 
+Time to the next infection was computed for each parameter given the value of $\sigma$. 
+The sum of the samples falling between 1 and 480 days was then computed and divided by the sample size. 
+After excluding the influence of the endemic infection rate ($\mu$), $\alpha_{\theta} \in [0.75, 0.95]$ and $\beta_{\theta} \in [0.1, 0.2]$  consistently led to average infection times between 1 and 480 days 95\% of the time.  
+However, increasing the number of samples drawn from each candidate parameter set (e.g. from 500 to 1,000) led to fewer instances where the average time to the next infection covered the interval. 
+Furthermore, the value of $\sigma$ tended to be near the top of the range (4-5 meters) for parameter values that led to the appropriate coverage. 
+Considering that the largest distance between any two plants in the set is less than 5 meters, values of $\sigma$ near the top of a physically meaningful range suggested an additional condition to arriving at the $\theta$ prior: the influence of the spatial component should also be excluded. 
+This makes sense in the context of the derivation. 
+
+In summary, many priors satisfied the specification criteria used by the authors and some were less informative than $\theta \sim \Gamma(0.8, \text{rate}=0.1)$, but there was no compelling result that suggesting a departure from the published result. 
 
 \subsubsection{$\boldsymbol{\sigma}$ Prior Predictive Distribution Specification}
 \citet{Brown} proposes a prior for $\sigma$ (the standard deviation that a particular aphid travels in one week) that includes 0.1 meters at the 2.5\% and 500 meters at the 95.5\%. 
@@ -247,6 +260,7 @@ Furthermore, specifying the 2.5-95.5\% quantile suggests a 93\% prior prediction
 Both of these values are assumed to be typographic errors and were instead assumed to suggest a distribution for $\sigma$ that leads to a prior whose 2.5\% quantile is 0.1 meters and 97.5\% quantile is 50 meters. 
 
 \subsection{Inference}
+\label{inference}
 While adding latent variables denoting infection times made it possible to write the likelihood for $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
 The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the 583 unknown infection times in the full data set. 
 Metropolis algorithms are well-suited for such parameterizations as several of the results reviewed in section \ref{literature_review} suggest.  

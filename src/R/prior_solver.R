@@ -79,6 +79,11 @@ tmp = sort(unique(tmp$x + 1.0i*tmp$y))
 xi = tmp[Re(tmp)<=4.5 & Im(tmp)<=1]
 ninedxixj = Mod(outer(xi, xi, FUN="-"))
 
+testPlants = data.frame(xi, plant=1:9)
+plot(testPlants$xi, pch="")
+text(testPlants$xi, label=testPlants$plant)
+
+# Simulation when the infected plant can be any of the 9
 it=1
 alpha = seq(0.1, 1, 0.1)
 beta_rate = seq(0.025, 0.5, 0.05)
@@ -114,3 +119,45 @@ dci=0.005
 tmp = coverage[coverage$cover<(0.95+dci) & coverage$cover>(0.95-dci),]
 candidateMeans = tmp[order(tmp$cover, decreasing=TRUE),]
 colMeans(candidateMeans)
+
+# Simulation when the infected plant can only be the center plant
+it=1
+nextit=1
+alpha = seq(0.5, 0.9, 0.05)
+beta_rate = seq(0.05, 0.2, 0.01)
+sigma = 5#seq(3, 5, 0.25)
+coverage = matrix(0, nrow=length(alpha)*length(beta_rate)*length(sigma), ncol=4)
+colnames(coverage) = c("alpha", "beta_rate", "sigma", "cover")
+sampleSize=500
+
+fixedSeed = rep(TRUE, nrow(ninedxixj))
+fixedSeed[5] = FALSE
+
+cat("Number of Evaluations to Complete:", nrow(coverage))
+for(a in alpha){
+  for(b in beta_rate){
+    for(s in sigma){
+      betweenDay1And480=0
+      for(th in rgamma(sampleSize, shape=a, rate=b)){
+        infDay = scalarEpiSim(sigma=s, mu=1e-5, theta=th,
+                              startTime=0, endTime=Inf, dxixj=ninedxixj, 
+                              susceptableAtStart=fixedSeed,
+                              simCount=1, returnSummary=FALSE)*7
+        nextInfDay = min(infDay[infDay>0], na.rm=TRUE)
+        betweenDay1And480 = betweenDay1And480+(nextInfDay>=1 & nextInfDay<=480)
+      }
+      coverage[it,] = c(a, b, s, betweenDay1And480/sampleSize)
+      if((it %% 20)==0){cat("Iteration: ", it, "\n")}
+      it = it+1
+    }
+  }
+}
+
+coverage = as.data.frame(coverage)
+coverage = coverage[order(coverage$cover, decreasing=TRUE),]
+dci=0.005
+tmp = coverage[coverage$cover<(0.95+dci) & coverage$cover>(0.95-dci),]
+candidates = tmp[order(tmp$cover, decreasing=TRUE),]
+colMeans(candidates)
+candidates[candidates$beta_rate==min(candidates$beta_rate),]
+colMeans(candidates[candidates$beta_rate==min(candidates$beta_rate),])

@@ -166,26 +166,6 @@ g
 ggsave(filename="/Users/nwelch/prelim/report/figures/figure_1.png", g, 
        dpi=300, height=4, width=6)
 ```
-```{r, echo=FALSE}
-
-figState = ggplot(data=dfTest, aes(x, y, color=factor(t6)), legend=FALSE) + 
-  geom_point() + 
-  scale_colour_manual(values = c("0"="grey", "1"="black"), guide=FALSE) +
-  theme_bw() +
-  theme(axis.line = element_line(colour='black'),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.border = element_blank(),
-    panel.background = element_blank(),
-    plot.margin = unit(c(1, 0.5, 0.5, 0), "lines"),
-    axis.text=element_text(size=12),
-    axis.title=element_text(size=12))+
-  xlab("meters")+
-  ylab("meters") +
-  theme_void() 
-figState
-```
-
 # Implementation Performance
 ```{r results = 'asis', echo=FALSE}
 theta = c(28.15, 25.08, 2.38, 1.07, 261.58, 16.65)
