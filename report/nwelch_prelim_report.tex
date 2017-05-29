@@ -342,14 +342,19 @@ The medians of $\theta$ and $\sigma$ seem well-aligned to the authors' findings,
 In fact, it is a good sign that the results for $\mu$ do not agree. 
 The prior for $\mu$ was derived under the rate parameterization. 
 However, the published source code indicates that the $\mu$ prior was coded with scale parameterization without adjusting the parameters.
-As a result, the error leads to a highly informative prior and the figure presented in the original paper suggests that the data were unable to overcome. 
+As a result, the error leads to a highly informative prior and the figure presented in the original paper suggests that the data may have been heavily influenced by this prior. 
+In this case, the prior should have pulled the posterior parameter distribution lower than what would be expected from a weak or noninformative prior. 
 This last point is critical. 
 
 If a highly informative prior was used, then the density plot in \citet{Brown}'s figure 2a should reflect this fact. 
 The figure does not indicate a highly informative prior but suggests instead that a weak prior was used as described. 
 Reviewing the codes for the figures published revealed a second bug. 
-The  $\mu$ density plot published was produced by a third distribution, $\Gamma(0.7, 0.7)$ and appears to result from a second inadvertent error. 
-Figure XYZ summarizes the error. 
+The  $\mu$ density plot published was produced by a third distribution, $\Gamma(0.7, 0.7)$ and appears to result from a second coding error. 
+
+The results in figure (\ref{fig:theta_density}) and (\ref{fig:sigma_density}) are consistent with the the authors' findings, but finding the right proposal concentration parameters to obtain convergence was a challenge and required several trial runs. 
+Getting $\sigma$ to converge was especially challenging. 
+Figures (\ref{fig:muSigma}) - (\ref{fig:sigmaTheta}) show pairwise scatter plots of the parameters. 
+These plots are useful to assessing convergence and the 50\%, 80\%, and 95\% point-wise confidence bands  tended to include jagged boundaries when at least one convergence diagnostic indicated problems. 
 
 \begin{figure}[H]
 	\centering
@@ -609,12 +614,21 @@ As a result, $\sigma$ is the only prior properly encoded.
 \end{figure} 
 
 \begin{figure}[H]
-\centering
-\includegraphics[height=0.26\linewidth, keepaspectratio]{figures/brown_figure_2a.png}
-\caption{Range of $\mu$ prior, truncated posterior sample $\mu$, and posterior sample $\mu$ published in \citet{Brown}}
-\label{fig:prior_mu_plot}
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\includegraphics[width=\textwidth]{figures/brown_figure_2a.png}
+		\caption{}
+		\label{fig:brown2a}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.49\textwidth}
+		\includegraphics[width=\textwidth]{figures/rate_v_scale_plot.png}
+		\caption{}
+		\label{fig:welch2a}
+	\end{subfigure}
+	\caption{(\subref{fig:brown2a}) Range of $\mu$ prior, truncated posterior sample $\mu$, and posterior sample $\mu$ published in \citet{Brown}; (\subref{fig:welch2a}) Comparison of figure production error, correct gamma prior parameterization, and gamma scale parameterization }
+	\label{fig:figError}
 \end{figure} 
-
 
 \end{document}
 
