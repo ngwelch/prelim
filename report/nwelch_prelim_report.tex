@@ -77,6 +77,7 @@ These methods led to reduced computation times compared to a full MCMC implement
 \subsection{Statistical Problem}
 Contemplating the complexity of statistical inference for an individual level infectious disease model whose infection rates include spatial and temporal dependencies is daunting.
 However, modeling disease propagation among regularly spaced crops on a farm reduces the challenge. 
+
 This study aims to conduct statistical inference for an ILM fit to an insect infestation of a Guadeloupe sugar cane field over a period of 30 weeks.
 Figure \ref{fig:data_plot} summarizes the sugar cane data set. 
 The black dots indicate locations of infected plants at the conclusion of the 30 week study period. 
@@ -575,8 +576,10 @@ As a result, $\sigma$ is the only prior properly encoded.
 \end{figure} 
 
 \newpage
+
 \section{Coding Error}
 \label{coding_error}
+
 
 While \citet{Brown} presents several variations of the basic and parallel Metropolis algorithms that improve performance, the authors ultimately determined that the statistical model specified was incapable of capturing the underlying complexities of the plantation data. 
 After deriving the parameters for the prior on $\mu$ and simulating epidemics from a subsample of the data, it became clear that the findings reported in \citet{Brown} were based on a irreparably flawed Metropolis algorithm implementation. 
