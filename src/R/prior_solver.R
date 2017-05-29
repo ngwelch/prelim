@@ -123,9 +123,9 @@ colMeans(candidateMeans)
 # Simulation when the infected plant can only be the center plant
 it=1
 nextit=1
-alpha = seq(0.5, 0.9, 0.05)
-beta_rate = seq(0.05, 0.2, 0.01)
-sigma = 5#seq(3, 5, 0.25)
+alpha = seq(0.5, 0.95, 0.05)
+beta_rate = seq(0.05, 0.2, 0.005)
+sigma = seq(4, 5, 0.25)
 coverage = matrix(0, nrow=length(alpha)*length(beta_rate)*length(sigma), ncol=4)
 colnames(coverage) = c("alpha", "beta_rate", "sigma", "cover")
 sampleSize=500
