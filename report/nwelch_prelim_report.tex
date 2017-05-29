@@ -138,9 +138,9 @@ Note too that the latent variable domains are restricted to the time periods in 
 
 The model must also account for the transmission rate differential induced by the physical distance separating infected and susceptible plants. 
 The transmission rate between an infected plant far from a susceptible plant should be smaller than the rate between two plants next to one another.
-As a result, let the function $\theta f(x_i -x_j \sigma | \sigma)$ denote the rate of infection for plant $i$ at time $t$ after plant $j$ was infected prior to $t$. 
+As a result, let the function $\theta f(x_i -x_j \vmdel{\sigma |} \vmadd{; } \sigma)$ denote the rate of infection for plant $i$ at time $t$ after plant $j$ was infected prior to $t$. 
 After including a term capturing the rate of spontaneous infection, $\mu$, the hazard function at plant $i$ and time $t$ given the infection times for plants $j \in \{1, 2, \dots, 1742\}$ is 
-$$\lambda(x_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(x_i - x_j; \sigma)$$
+$$\lambda(x_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(x_i - x_j; \sigma)\vmadd{.}$$
 Now consider the contribution that plant $x_i$ makes to the likelihood if it is infected at time $0<\tau_i<T=30$ weeks. 
 By definition of the hazard function, the instantaneous infection rate at plant $x_i$ is
 \begin{align*}
@@ -153,19 +153,23 @@ By definition of the hazard function, the instantaneous infection rate at plant 
 \end{align*}
 where $S_i$, $f_i$, and $\Lambda_i$ denote the respective survival function, probability distribution function (pdf), and cumulative hazard for plant $x_i$. 
 From this expression, it follows that
-$$ f_i(t) = \lambda(x_i,t) \exp \left\{ - \int_0^t \lambda(x_i,t) dt  \right\}$$
+$$ f_i(t) = \lambda(x_i,t) \exp \left\{ - \int_0^t \lambda(x_i,t) dt  \right\}\vmadd{,}$$
 establishing the pdf that plant $x_i$ contributes to the likelihood function if $t<T=30$ weeks. 
 Plants that remain healthy throughout the study period contribute $S_i(t)$ to the likelihood. 
 As a result, the complete likelihood function is
 \begin{equation} 
-L(\theta, \mu, \tau) = \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt\right \} \lambda(x_i, \tau_i)\right] \left[ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt \right\}\right] 
+L(\theta, \mu, \tau) = \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt\right \} \lambda(x_i, \tau_i)\right] \left[ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt \right\}\right] \vmadd{.}
 \end{equation}
+\vmcomment{That derivation would work if all infection times were independent, which is not true for inhomogeneous CTMCs. Therefore, you need to comment on what grounds you can just multiply hazards and survival functions.}
 
-The last component of the model to specify is the kernel function, $f(x_i -x_j | \sigma)$. 
+The last component of the model to specify is the kernel function, $f(x_i -x_j \vmdel{|} \vmadd{;} \sigma)$. 
 In this case, a radially symmetric bivariate Gaussian density is appropriate. 
-\begin{equation} f( x_i-x_j |\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||x_i-x_j||^2}{2\sigma^2} \right\} \label{eq:kernel} \end{equation}
+\begin{equation} f( x_i-x_j \vmdel{|} \vmadd{;}\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||x_i-x_j||^2}{2\sigma^2} \right\} \vmadd{.}
+\label{eq:kernel} \end{equation}
 The Gaussian kernel is physically reasonable since the movement of aphids among plants can be modeled by Brownian Motion. 
 With this argument, $\sigma^2$ in (\ref{eq:kernel}) denotes the variance of the distance an aphid travels in one week. 
+\vmcomment{Just noticed, you keep using $x_i - x_j$ without defining it. 
+Are $x$s two-dimensional? If yes, why aren't you using Euclidean distance?}
 
 \subsection{Prior Distributions}
 \citet{Brown} suggests weakly informative priors for the endemic infection rate ($\mu$), the epidemic infection rate ($\theta$), and the standard deviation for distance disease traveled in a week ($\sigma$). 
