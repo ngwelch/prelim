@@ -217,6 +217,7 @@ Plugging these equations into a numerical solver with $N=630$ leads to $\alpha=0
 These results are consistent with \citet{Brown}'s findings, i.e. $\alpha=0.7$ and $\beta=0.004$. 
 However, these small differences do change the quantiles and variances corresponding to the distribution $\mu_{\text{Brown}} \sim \Gamma(0.7, 0.004)$ and $\mu_{\text{replicated}} \sim \Gamma(0.6893886, 0.004766281)$. 
 Table \ref{table:mu_prior_quantile} shows the quantiles, means, and variances for the prior predictive distribution for $\mu$. 
+\vmcomment{I would skip or move the above equations into the appendix. Poisson integrated against Gamma results in a Negative Binomial distribution, which is pretty standard. I would not dwell on this in the manuscript.}
 
 \begin{table}[ht]
 \centering
@@ -246,7 +247,8 @@ See the Results section for more information on the the effects of the error and
 While the derivation of the $\mu$ prior is instructive, the algorithm provides a mechanism to set new priors based on the number of infections observed for other samples. 
 The $\mu$ prior is the only prior in this model that depends on the number of infections observed. 
 As a result, constructing a model with a subset of the data available or a different infection count requires adjustments to this prior. 
-Priors for $\sigma$ and $\theta$ rely on environmental variables instead of the number of infections observed. 
+Priors for $\sigma$ and $\theta$ rely on environmental variables instead of the number of infections observed.
+\vmcomment{Not sure I understand what you mean by the ``environmental variables". Have you defined them before?}
 
 \subsubsection{$\boldsymbol{\theta}$ Prior Predictive Distribution Specification}
 \citet{Brown} suggests that the $\theta$ prior was determined by considering the average time required to observe a new infection when an infected plant is surrounded by susceptible plants. 
@@ -262,11 +264,13 @@ However, increasing the number of samples drawn from each candidate parameter se
 Furthermore, the value of $\sigma$ tended to be near the top of the range (4-5 meters) for parameter values that led to the appropriate coverage. 
 Considering that the largest distance between any two plants in the set is less than 5 meters, values of $\sigma$ near the top of a physically meaningful range suggested an additional condition to arriving at the $\theta$ prior: the influence of the spatial component should also be excluded. 
 This makes sense in the context of the derivation. 
+\vmcomment{You use too much passive voice. Try to mix it up more, if not remove passive voice almost entirely.}
 
 In summary, many priors satisfied the specification criteria used by the authors and some were less informative than $\theta \sim \Gamma(0.8, \text{rate}=0.1)$, but there was no compelling result that suggesting a departure from the published result. 
 
 \subsubsection{$\boldsymbol{\sigma}$ Prior Predictive Distribution Specification}
-$\sigma^2$ denotes the variance of the distance an aphid travels in a week. 
+\vmadd{Parameter} $\sigma^2$ denotes the variance of the distance an aphid travels in a week.
+\vmcomment{I advice against starting a sentence with a math symbol/notation.}  
 Considering that the distance traveled is modeled as Brownian motion with a zero mean bivariate normal kernel, a 95\% confidence interval for the distance traveled after one week corresponds to an aphid traveling $2\sigma$ at the 97.5\% quantile. 
 With this understanding, $\sigma \sim \Gamma(0.5, \text{scale}=100)$ implies that an aphid travels between $2\sigma_{0.025} \approx 0.1$ meters at the 2.5\% quantile and $2\sigma_{0.975} \approx 500$ meters at the 97.5\% quantile of the prior distribution. 
 While this prior does have large variance and therefore leads to a weakly informative prior for $\sigma$, the most distant points in the field under consideration are separated by approximately 56 meters. 
@@ -278,7 +282,7 @@ Under this prior, $2\sigma_{0.025} \approx 0.1$ meters and $2\sigma_{0.975} \app
 While adding latent variables denoting infection times made it possible to write the likelihood for $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
 The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the unknown infection times in the full data set (583 times in the full data set). 
 Metropolis algorithms are well-suited for such parameterizations as several of the results reviewed in section \ref{literature_review} suggest.  
-In particular, the Metropolis-in-Gibbs implementation with a \textit{non-centering parameterization} used to fit a model to the plantation data is a special case of the algorithm described by \citet{Jewell} and briefly discussed in \citet{ONeill}.  
+In particular, the Metropolis-\vmadd{with}in-Gibbs implementation with a \textit{non-centering parameterization} used to fit a model to the plantation data is a special case of the algorithm described by \citet{Jewell} and briefly discussed in \citep{ONeill}.  
 
 The algorithm relies on the priors, the likelihood formula, and the data. 
 In this case, the data, $\textbf{Y} = \{Y_i:i=1,\dots, m \le N\}$, are the intervals in which each infected plant's status changed from healthy to infected with $m$ denoting the number of intervals in the data and $N$ the total number of infected individuals at the end of the study period. 
