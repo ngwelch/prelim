@@ -437,7 +437,16 @@ The results indicate that plants nearer to infected plants tend to become infect
 	\label{fig:time_plots}
 \end{figure} 
 
-Figure \ref{fig:sim_epidemic}
+Figure \ref{fig:sim_epidemic} shows simulated epidemics that correspond to the 165 plant sample enclosed in the blue box in figure (\ref{fig:plants}). 
+The plot reflects the number of infections per week conditioned on the infection intervals recorded (\ref{fig:cond_infections}) and infection times without reference to intervals of infection. 
+Grey lines indicate sample paths, black dashed lines show the 2.5\% and 97.5\% pointwise confidence bounds, and the solid black line corresponds to the median infection count per week. 
+These plots are based on a 10\% sample of the data and as a result lead to less informative interpretation than a larger or the full data set. 
+The figures do, however, indicate that the posterior parameters sampled lead to many more infections earlier than what was observed in the sample data. 
+The unconditional simulation also failed to appreciably account for the discontinuity around week 23. 
+On the other hand, the 97.5\% upper bound for the simulated unconditional simulations contain the bounds tor the conditional simulations. 
+The bounds also widen as time progresses. 
+These results suggest that the model has some capacity to reflect the dynamics of an outbreak, but the applicability of the model to new outbreaks is limited.
+This result is consistent with \citet{Brown}'s findings with the full data set and correcting the bug on the $\mu$ prior did not lead to materially different inference in simulations for the first few weeks of an outbreak. 
 
 \begin{figure}[H]
 	\centering
@@ -456,6 +465,7 @@ Figure \ref{fig:sim_epidemic}
 	\label{fig:sim_epidemic}
 \end{figure} 
 
+Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all plants in the field. 
 
 \begin{figure}[H]
 	\centering
@@ -471,7 +481,7 @@ Figure \ref{fig:sim_epidemic}
 		\label{fig:root_all_infections}
 	\end{subfigure}
 	\caption{(\subref{fig:all_infections}) tbd; (\subref{fig:root_all_infections}) tbd }
-	\label{fig:data_plot}
+	\label{fig:full_field_sim}
 \end{figure} 
 
 
