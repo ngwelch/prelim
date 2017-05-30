@@ -139,35 +139,3 @@ postEpiSim = function(tau){
   # return both results in the same matrix
   rbind(weeks, postCI, post)
 }
-
-##############################################################################
-############################# Prediction #####################################
-##############################################################################
-
-t6 = read.csv(file="/Users/nwelch/prelim/data/plantData.csv")$t6
-susceptable = ifelse(t6==0, TRUE, FALSE)
-onePredSim = scalarEpiSim(startTime=30, endTime=Inf, 
-                          susceptableAtStart=susceptable,
-                          returnSummary=FALSE)
-testMatrix = cbind(u,s,t)
-for(i in 1:4){ testMatrix = rbind(testMatrix, testMatrix)}
-manyPredSim = vectorEpiSim(muSigmaThetaVector=testMatrix,
-                           startTime=30, endTime=Inf, 
-                           susceptableAtStart=susceptable,
-                           returnSummary=FALSE)
-
-cumTimes = c(35, 40, 50, 60)
-colBreaks = c(-0.1, 0.2, 0.8, 0.9999, 1.01)
-colLabel = c('zeroTo19', 'twentyTo79', 'eightyTo99', 'knownInfection')
-probInfected = probInfLabel = NULL
-for(ct in cumTimes){
-  probabilities = apply(manyPredSim, 1, function(t) mean(t<ct))
-  probInfected = cbind(probInfected, probabilities)
-  probLabels = as.character(cut(probabilities, breaks=colBreaks, labels=colLabel))
-  probInfLabel = cbind(probInfLabel, probLabels)
-}
-colnames(probInfected) = colnames(probInfLabel) = paste0("week", cumTimes)
-write.csv(probInfected, file="/Users/nwelch/prelim/data/fig5Probabilities.csv", 
-          row.names=FALSE)
-write.csv(probInfLabel, file="/Users/nwelch/prelim/data/fig5ProbLabels.csv", 
-          row.names=FALSE)
