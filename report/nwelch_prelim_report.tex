@@ -37,7 +37,7 @@ This paper aims to conduct statistical inference for parameters of an individual
 Individual level models have the capacity to reflect spatial and temporal influences on disease propagation among infected and susceptible individuals.
 A simple individual level model is derived and fit to data collected during an insect infestation of a sugar cane field.
 Model parameters are estimated using the Metropolis sampling algorithm; however, the computational burden created by fitting even a simple model leads to prohibitively long computation times. 
-\textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data} \citep{Brown} fit a model to the same data. 
+\citet{Brown}, in their article \textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data}, fit a model to the same data. 
 The authors offer mathematical and computational insights to improve computation time, but errors in the published Metropolis algorithm source code led the authors to inferences and conclusions unsupportable with the data alone. 
 \end{abstract}
 
@@ -49,9 +49,9 @@ Improving our understanding of these parameters will lead to more effective resp
 
 \citet{Brown} set out to conduct statistical inference for a simple class of disease propagation models by estimating the risk that a susceptible individual contracts a disease from an infected member of the population. 
 In these models, the risk of contracting the disease is modeled at the individual level rather than for the population as a whole. 
-The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individuals  exposure to those infected. 
+The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individuals\vmadd{'}  exposure to those infected. 
 While this model is conceptually convenient, the computational complexity and limitations of algorithms capable of fitting such a model create significant challenges.
-In \citet{Brown}, the authors appeal to standard likelihood methods and the Metropolis algorithm \citep{Metropolis} to estimate the parameters of a simple individual level model (ILM) for disease propagation.
+\citet{Brown} appeal to standard likelihood methods and the Metropolis algorithm \citep{Metropolis} to estimate the parameters of a simple individual level model (ILM) for disease propagation.
 The emphasis on basic components like the Metropolis sampler and simple disease model focuses readers on common challenges inherent with data for statistical inference with infectious disease data. 
 
 \subsection{Literature Review}
@@ -62,16 +62,16 @@ It also assumes complete data are available to fit these early models.
 \citet{Becker} surveys a number of models and the types of data sets these models can accommodate. 
 His work highlights the distinction between studying disease spread from a mathematical perspective as apposed to a statistical inference point of view and summarizes the principle challenges that disease propagation presents to many statistical methods.
 
-\citet{ONeill} builds on the idea that one does not have to choose between parameter inference and mathematical insight. 
+\citet{ONeill} build\vmdel{s} on the idea that one does not have to choose between parameter inference and mathematical insight. 
 In fact, the authors show that a basic Metropolis-Hastings algorithm clears the way for more realistic modeling assumptions and interdependencies. 
-\citet{Jewell} provides an updated perspective and outlines several MCMC design patterns for convoluted models.
-\citet{Brown} primarily contributes another example of these methods along with computational efficiencies beyond an MCMC framework. 
+\citet{Jewell} provide\vmdel{s} an updated perspective and outlines several MCMC design patterns for convoluted models.
+\citet{Brown} primarily contribute\vmdel{s} another example of these methods along with computational efficiencies beyond an MCMC framework. 
 
 While improved computation power made it possible to fit more complex statistical disease models, evaluating likelihood functions that include spatio-temporal components becomes challenging when there are more than a few observations. 
 As the cost to evaluate the likelihood function grows with the number of observations, the utility of MCMC approaches declines.
-\citet{McKinley} proposes Approximately Bayesian Computation (ABC) that avoids calculating the likelihood by generating an approximation to the likelihood function with each pass through an MCMC implementation. 
+\citet{McKinley} propose\vmdel{s} Approximately Bayesian Computation (ABC) that avoids calculating the likelihood by generating an approximation to the likelihood function with each pass through an MCMC implementation. 
 \citet{Diggle} forgoes the complexity of full likelihood inference and instead appeals to the partial likelihood function to carry out inference for the parameters of interest. 
-\citet{Deardon} uses a Taylor series to approximate infection kernel function to make a Bayesian approach computationally practical. 
+\citet{Deardon} use\vmdel{s} a Taylor series to approximate infection kernel function to make a Bayesian approach computationally practical. 
 These methods led to reduced computation times compared to a full MCMC implementation, but each either require either completely observed data or are too closely associated with a particular model to be widely applicable.
 
 \subsection{Statistical Problem}
@@ -97,7 +97,8 @@ The plot on the right shows the cumulative number of infected plants after each 
 		\caption{}
 		\label{fig:cum_infection}
 	\end{subfigure}
-	\caption{(\subref{fig:plants}) Plant locations (meters) and infection status (black=infected) after 30 weeks; (\subref{fig:cum_infection}) number of infected plants at each inspection time}
+	\caption{(\subref{fig:plants}) Plant locations (meters) and infection status (black=infected) after 30 weeks; (\subref{fig:cum_infection}) number of infected plants at each inspection time. 
+	\vmcomment{Explain the blue box here?}}
 	\label{fig:data_plot}
 \end{figure} 
 
@@ -109,20 +110,21 @@ As a result, plausible inference methods must include some means to account for 
 The sugar cane data set includes the infection status of 1,742 plants at six times over a 30 week period. 
 Each observation lists the plant location on a two-dimensional rectangular grid and whether it is infected at week 0, 6, 10, 14, 19, 23, and 30.
 For this data set, it is reasonable to assume that once a plant becomes infected, it remains infected for the duration of the study period. 
-A Susceptible-Infected (SI) model is appropriate for this situation and \citet{Jewell} provides a thorough introduction to this and other disease model frameworks. 
+A Susceptible-Infected (SI) model is appropriate for this situation and \citet{Jewell} provide\vmdel{s} a thorough introduction to this and other disease model frameworks. 
 While an SI model is particularly simple, the model is plausible considering the way that an infestation proceeds for an aphid infestation of plants over 30 weeks time. 
 Starting with a simple model also emphasizes the principle statistical components handled by \citet{Brown}, e.g. unknown infection times. 
 
 Intervals in which susceptible plants became infected are recorded, but the data do not include granular infection time data.  
 As a result, there is no way of knowing how long a plant occupied the susceptible and infected stages.
-This is a common experimental design, and the details of studies that include this \textit{Type I censoring} with \textit{right} and \textit{interval censored} data are discussed at length in survival analysis texts such as \citet{Klein}. 
-While the data collection framework in \citet{Brown} is standard, inference methods for \textit{interval censored} modeling parameters remains more nuanced.
+This is a common experimental design, and the details of studies that include this \textit{Type I censoring} with \textit{right} and \textit{interval censored} data are discussed at length in survival analysis texts such as \citep{Klein}. 
+While the data collection framework in \citep{Brown} is standard, inference methods for \textit{interval censored} modeling parameters remains more nuanced.
 
-Data augmentation is a common approach to overcoming this inference with unknown infection times. 
-In this case, unknown infection times are modeled as latent variables. 
+Data augmentation is a common approach to overcoming \vmdel{this inference with} 
+\vmadd{the problem of} unknown infection times. 
+In this case, unknown infection times are \vmdel{modeled} \vmadd{treated} as latent variables. 
 Including these latent variables makes the likelihood function tractable, but inflating the parameter space complicates the model fitting process. 
 These factors point to a Bayesian approach to approximating the posterior parameter space of the SI model. 
-\citet{Jewell} discusses an augmentation approach in the context of a \textit{Metropolis-in-Gibbs} MCMC framework and the simulation setup described in the next section follows directly. 
+\citet{Jewell} discusse\vmdel{s} an augmentation approach in the context of a \textit{Metropolis-in-Gibbs} MCMC framework and the simulation setup described in the next section follows directly \vmadd{from their work}. 
 
 \section{Methods}
 \subsection{Model and Likelihood}
@@ -136,9 +138,9 @@ Note too that the latent variable domains are restricted to the time periods in 
 
 The model must also account for the transmission rate differential induced by the physical distance separating infected and susceptible plants. 
 The transmission rate between an infected plant far from a susceptible plant should be smaller than the rate between two plants next to one another.
-As a result, let the function $\theta f(x_i -x_j \sigma | \sigma)$ denote the rate of infection for plant $i$ at time $t$ after plant $j$ was infected prior to $t$. 
+As a result, let the function $\theta f(x_i -x_j \vmdel{\sigma |} \vmadd{; } \sigma)$ denote the rate of infection for plant $i$ at time $t$ after plant $j$ was infected prior to $t$. 
 After including a term capturing the rate of spontaneous infection, $\mu$, the hazard function at plant $i$ and time $t$ given the infection times for plants $j \in \{1, 2, \dots, 1742\}$ is 
-$$\lambda(x_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(x_i - x_j; \sigma)$$
+$$\lambda(x_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(x_i - x_j; \sigma)\vmadd{.}$$
 Now consider the contribution that plant $x_i$ makes to the likelihood if it is infected at time $0<\tau_i<T=30$ weeks. 
 By definition of the hazard function, the instantaneous infection rate at plant $x_i$ is
 \begin{align*}
@@ -151,19 +153,23 @@ By definition of the hazard function, the instantaneous infection rate at plant 
 \end{align*}
 where $S_i$, $f_i$, and $\Lambda_i$ denote the respective survival function, probability distribution function (pdf), and cumulative hazard for plant $x_i$. 
 From this expression, it follows that
-$$ f_i(t) = \lambda(x_i,t) \exp \left\{ - \int_0^t \lambda(x_i,t) dt  \right\}$$
+$$ f_i(t) = \lambda(x_i,t) \exp \left\{ - \int_0^t \lambda(x_i,t) dt  \right\}\vmadd{,}$$
 establishing the pdf that plant $x_i$ contributes to the likelihood function if $t<T=30$ weeks. 
 Plants that remain healthy throughout the study period contribute $S_i(t)$ to the likelihood. 
 As a result, the complete likelihood function is
 \begin{equation} 
-L(\theta, \mu, \tau) = \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt\right \} \lambda(x_i, \tau_i)\right] \left[ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt \right\}\right] 
+L(\theta, \mu, \tau) = \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt\right \} \lambda(x_i, \tau_i)\right] \left[ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt \right\}\right] \vmadd{.}
 \end{equation}
+\vmcomment{That derivation would work if all infection times were independent, which is not true for inhomogeneous CTMCs. Therefore, you need to comment on what grounds you can just multiply hazards and survival functions.}
 
-The last component of the model to specify is the kernel function, $f(x_i -x_j | \sigma)$. 
+The last component of the model to specify is the kernel function, $f(x_i -x_j \vmdel{|} \vmadd{;} \sigma)$. 
 In this case, a radially symmetric bivariate Gaussian density is appropriate. 
-\begin{equation} f( x_i-x_j |\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||x_i-x_j||^2}{2\sigma^2} \right\} \label{eq:kernel} \end{equation}
+\begin{equation} f( x_i-x_j \vmdel{|} \vmadd{;}\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||x_i-x_j||^2}{2\sigma^2} \right\} \vmadd{.}
+\label{eq:kernel} \end{equation}
 The Gaussian kernel is physically reasonable since the movement of aphids among plants can be modeled by Brownian Motion. 
 With this argument, $\sigma^2$ in (\ref{eq:kernel}) denotes the variance of the distance an aphid travels in one week. 
+\vmcomment{Just noticed, you keep using $x_i - x_j$ without defining it. 
+Are $x$s two-dimensional? If yes, why aren't you using Euclidean distance?}
 
 \subsection{Prior Distributions}
 \citet{Brown} suggests weakly informative priors for the endemic infection rate ($\mu$), the epidemic infection rate ($\theta$), and the standard deviation for distance disease traveled in a week ($\sigma$). 
