@@ -465,7 +465,18 @@ This result is consistent with \citet{Brown}'s findings with the full data set a
 	\label{fig:sim_epidemic}
 \end{figure} 
 
-Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all plants in the field. 
+Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all plants using the parameters sampled from the Metropolis algorithm with the sample data. 
+Figure (\ref{fig:all_infections}) shows the raw output of the simulation. 
+Figure (\ref{fig:root_all_infections}) shows the same results, but plots the square root of the paths instead of the raw counts that result from the simulations. 
+Figure 5 in \citet{Brown} uses this transformation. 
+Again, the error bounds are wider for the posterior parameters sampled from the 10\% subset of the plantation data, but the conclusions are effectively the same with some notable exceptions. 
+
+The simulations generated form the sample data led to much more variation in the simulated outbreaks. 
+This result follows from the wider confidence intervals associated with the sampled data; however, it is not clear how much of this additional variation is explained can be explained by sampling the data versus correctly parameterizing the prior $\mu$ prior. 
+The concavity of the weekly infection counts around week 23 is also remarkable. 
+While the weekly infection counts appear higher than \citet{Brown}'s findings, the declining rate of infection seen here implies that the number of new infections per week begins to decline as the fewer and fewer plants remain susceptible. 
+This observation is encouraging for the fidelity of the simple SI model as it suggests that the number of new infections per week begins to decline as the field becomes fully infested. 
+However, this result seems to be a byproduct of a more aggressive infestation instead a departure from previous findings. 
 
 \begin{figure}[H]
 	\centering
@@ -484,6 +495,12 @@ Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all
 	\label{fig:full_field_sim}
 \end{figure} 
 
+Figure (\ref{fig:prediction}) offers another perspective on the results of the sampler. 
+The panels in the figure shows the predicted infection probabilities for each plant starting from the infection status of plants starting with the infections recorded at week 30. 
+Infection probabilities were predicted for weeks 35, 40, 50, and 60. 
+The results show that new infections tend to occur near infected plants as expected, but most of the field is infected by the end of week 60. 
+This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there based on yet another error causing the infection probabilities to be unreasonably low for a scenario where an epidemic is continuing instead of starting from an endemic infection. 
+\textbf{Pick back up here tomorrow...} Specifically, 
 
 \begin{figure}[H]
 	\centering
@@ -511,9 +528,10 @@ Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all
 		\label{fig:week_60}
 	\end{subfigure}
 	\caption{(\subref{fig:week_35}) tbd; (\subref{fig:week_60}) tbd }
-	\label{fig:data_plot}
+	\label{fig:prediction}
 \end{figure} 
 
+\section{Discussion}
 While \citet{Brown} presents several variations of the basic and parallel Metropolis algorithms that improve performance, the authors ultimately determined that the statistical model specified was incapable of capturing the underlying complexities of the plantation data. 
 After deriving the parameters for the prior on $\mu$ and simulating epidemics from a subsample of the data, it became clear that the findings reported in \citet{Brown} were based on a flawed Metropolis algorithm implementation. 
 Coding errors were replicated across all implementations and ultimately led the authors to possibly unfounded inference. 
@@ -533,24 +551,6 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 As a result, it is clear from figure \ref{fig:prior_mu_plot} that the posterior samples for $\mu$ only reflects the influence of the prior. 
 After reviewing the authors' source code, it was confirmed that the authors did in fact use the scale parameterization for all gamma priors in the sampler. 
 As a result, $\sigma$ is the only prior properly encoded. 
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{r|rrrrr}
-  Algorithm & \multicolumn{5}{c}{Times for Updating the Following Parameters} \\
- \hline
- & $\theta$ & $\mu$ & $\tau$ & $\sigma$ & Total \\ 
-  \hline
-  Basic & 28.15 & 14.27 & 160.92 & 28.99 & 232.33 \\ 
-  Parallel & 25.08 & 12.57 & 29.99 & 25.17 & 92.81 \\ 
-  Truncated & 1.07 & 1.07 & 1.76 & 1.13 & 5.03 \\ 
-  \hline
-\end{tabular}
-\caption{tbd...}
-\end{table}
-
-
-\section{Discussion}
 
 \newpage
 \bibliography{prelim_references}
@@ -663,4 +663,18 @@ As a result, $\sigma$ is the only prior properly encoded.
 
 \end{document}
 
-
+%Holdover stuff
+\begin{table}[ht]
+\centering
+\begin{tabular}{r|rrrrr}
+  Algorithm & \multicolumn{5}{c}{Times for Updating the Following Parameters} \\
+ \hline
+ & $\theta$ & $\mu$ & $\tau$ & $\sigma$ & Total \\ 
+  \hline
+  Basic & 28.15 & 14.27 & 160.92 & 28.99 & 232.33 \\ 
+  Parallel & 25.08 & 12.57 & 29.99 & 25.17 & 92.81 \\ 
+  Truncated & 1.07 & 1.07 & 1.76 & 1.13 & 5.03 \\ 
+  \hline
+\end{tabular}
+\caption{tbd...}
+\end{table}

@@ -602,7 +602,7 @@ t = c(0.11, 0.08, 0.15)
 vecSim = vectorEpiSim(muSigmaThetaVector=cbind(u,s,t), simCount=100)
 ```
 
-## Posterior Simulated Infections Per Week
+## Conditional Posterior Simulated Infections Per Week
 ```{r}
 sampleTau = thinResults[,1:(ncol(thinResults)-3)]
 pstSim = postEpiSim(sampleTau)
@@ -637,6 +637,7 @@ par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
 dev.off()
 ```
 
+## All Plants Unconditional Simulation
 ```{r}
 sampleParams = thinResults[seq(1, nrow(thinResults), 10), c('mu', 'sigma', 'theta')]
 vecSim = vectorEpiSim(muSigmaThetaVector=sampleParams, dxixj=dxixj)
@@ -758,8 +759,8 @@ prediction = data.frame(df[,c("x", "y")], fig5Labels)
 ```{r}
 colGrey = grey(c(1, 0.65, 0.35, 0.05))
 colLabel = c('zeroTo19', 'twentyTo79', 'eightyTo99', 'knownInfection')
-thecol = c("zeroTo19"="grey100", "twentyTo79"="grey75", 
-           "eightyTo99"="grey50", "knownInfection"="black")
+thecol = c("zeroTo19"="grey100", "twentyTo79"="grey80", 
+           "eightyTo99"="grey60", "knownInfection"="black")
 ```
 
 ```{r}
@@ -769,7 +770,7 @@ fig5a = ggplot(data=prediction, aes(x, y, color=week35), legend=FALSE) +
   theme_bw() +
   theme_void() 
 ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5a.png", fig5a, 
-       dpi=300, height=5, width=3.5)
+       dpi=300, height=6, width=3.5)
 fig5a
 ```
 
@@ -780,7 +781,7 @@ fig5b = ggplot(data=prediction, aes(x, y, color=week40), legend=FALSE) +
   theme_bw() +
   theme_void()
 ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5b.png", fig5b, 
-       dpi=300, height=5, width=3.5)
+       dpi=300, height=6, width=3.5)
 fig5b
 ```
 ```{r}
@@ -790,7 +791,7 @@ fig5c = ggplot(data=prediction, aes(x, y, color=week50), legend=FALSE) +
   theme_bw() +
   theme_void() 
 ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5c.png", fig5c, 
-       dpi=300, height=5, width=3.5)
+       dpi=300, height=6, width=3.5)
 fig5c
 ```
 
@@ -801,7 +802,7 @@ fig5d = ggplot(data=prediction, aes(x, y, color=week60), legend=FALSE) +
   theme_bw() +
   theme_void() 
 ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5d.png", fig5d, 
-       dpi=300, height=5, width=3.5)
+       dpi=300, height=6, width=3.5)
 fig5d
 ```
 
