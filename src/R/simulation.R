@@ -141,52 +141,6 @@ postEpiSim = function(tau){
 }
 
 ##############################################################################
-############################ Density Plots ###################################
-##############################################################################
-
-par(mfcol=c(1,2), mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
-### First time period
-breakPoints = seq(10,14,len=10)
-tmp = apply(sampleTau[,1:7], 2, hist, breaks=breakPoints, plot=F)
-postSampleDensity = NULL
-for(psd in 1:length(tmp))
-  postSampleDensity = cbind(postSampleDensity, tmp[[psd]]$density)
-
-matplot(breakPoints[-1]-diff(breakPoints)/2, postSampleDensity, 
-        type="l", lty=rep(1:3, c(3,3,3)),
-        col=rep(grey(c(0, 0.4, 0.6, 0.8)),3),
-        xlab="week", ylab="density")
-
-### Last time period
-breakPoints = seq(23,30,len=10)
-tmp = apply(sampleTau[,25:34], 2, hist, breaks=breakPoints, plot=F)
-postSampleDensity = NULL
-for(psd in 1:length(tmp))
-  postSampleDensity = cbind(postSampleDensity, tmp[[psd]]$density)
-
-postSampleMean = apply(postSampleDensity, 2, mean)
-postSampleMean = matrix(postSampleMean, nrow(postSampleDensity), 
-                        ncol(postSampleDensity))
-centering = postSampleDensity - postSampleMean
-centeringL = apply(centering[1:3,], 2, sum)
-centeringH = apply(centering[7:9,], 2, sum)
-
-plotLines=c(order(centeringL, decreasing=T)[c(1,10)],
-            order(centeringH, decreasing=T)[c(1,10)])
-
-matplot(breakPoints[-1]-diff(breakPoints)/2, postSampleDensity, 
-        type="l",
-        col="#50505030",
-        xlab="week", ylab="density")
-matlines(breakPoints[-1]-diff(breakPoints)/2, 
-         postSampleDensity[,toplot], 
-         col="white", lty=1, lwd=4)
-matlines(breakPoints[-1]-diff(breakPoints)/2, 
-         postSampleDensity[,toplot], 
-         col="black",lty=c(1,1,2,2))
-par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
-
-##############################################################################
 ############################# Prediction #####################################
 ##############################################################################
 

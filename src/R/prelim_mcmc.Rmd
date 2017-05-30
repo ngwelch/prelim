@@ -368,7 +368,33 @@ denstrip(post_mu, horiz=T, at=0.5,
 		ticks=quantile(post_mu, probs=c(0.025, 0.5, 0.975)), width=stripwidth)
 par(mar=c(5,4,4,2)+0.1)
 ```
+```{r, echo=FALSE}
+xseq = seq(0, 1, len=5e4)[-(1:4)]
+stripwidth=0.5
 
+png(filename="/Users/nwelch/prelim/report/figures/rate_v_scale_plot.png", 
+    res=300, width=4, height=2, units='in')
+par(mar=c(3,5,1,0.5), mgp=c(2,0.5,0.5))
+
+plot(NA, xlim=c(0, 0.008), ylim=c(0,3),
+		xlab=expression(mu), yaxt="n", ylab="")
+axis(2, at=c(2.5, 1.5, 0.5), labels=c("Error", "Rate", "Scale"), las=1)
+
+# figure error
+denstrip(xseq, dgamma(xseq, shape=0.7, scale=0.7), horiz=T, at=2.5, width=stripwidth)
+
+# rate plot
+denstrip(xseq, dgamma(xseq, shape=0.7, rate=0.004), horiz=T, at=1.5, 
+		ticks=qgamma(c(0.025, 0.5, 0.975), shape=0.7, rate=0.004), width=stripwidth)
+
+# scale error
+gammaMedian=NULL #qgamma(0.5, shape=0.7, scale=0.004)
+denstrip(xseq, dgamma(xseq, shape=0.7, scale=0.004), horiz=T, at=0.5,
+		ticks=c(0.7*0.004, gammaMedian), width=stripwidth)
+
+par(mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
+dev.off()
+```
 ```{r, echo=FALSE}
 prior_mu = rgamma(10000, shape=1.307877, rate=0.06334962) #, mu_rate=
 post_mu = thinResults$mu
@@ -653,7 +679,8 @@ breakPoints = seq(fromTo[1], fromTo[2],len=10)
 tmp = apply(tauPosterior[,firstKeep, drop=F], 2, hist, breaks=breakPoints, plot=F)
 postSampleDensity = NULL
 for(psd in 1:length(tmp))
-  postSampleDensity = cbind(postSampleDensity, tmp[[psd]]$density)
+  postSampleDensity = cbind(postSampleDensity, 
+                            tmp[[psd]]$density/sum(tmp[[psd]]$density))
 
 ### First time period
 png(filename="/Users/nwelch/prelim/report/figures/figure_3a.png", 
@@ -661,7 +688,7 @@ png(filename="/Users/nwelch/prelim/report/figures/figure_3a.png",
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(breakPoints[-1]-diff(breakPoints)/2, postSampleDensity, 
         type="l", lty=1, col="grey50",
-        xlab="week", ylab="density", ylim=c(0.2, 0.3))
+        xlab="week", ylab="density", ylim=c(0, 0.2))
 dev.off()
 ```
 
@@ -675,7 +702,8 @@ tmp = apply(tauPosterior[,lastKeep, drop=F], 2, hist, breaks=breakPoints, plot=F
 ### Last time period
 postSampleDensity = NULL
 for(psd in 1:length(tmp))
-  postSampleDensity = cbind(postSampleDensity, tmp[[psd]]$density)
+  postSampleDensity = cbind(postSampleDensity, 
+                            tmp[[psd]]$density/sum(tmp[[psd]]$density))
 
 postSampleMean = apply(postSampleDensity, 2, mean)
 postSampleMean = matrix(postSampleMean, nrow(postSampleDensity), 
