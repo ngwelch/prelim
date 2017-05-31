@@ -295,11 +295,11 @@ The Metropolis algorithm summarized below leads to a posterior sample from $\pi(
 \item at iteration $r$, set $\tau_i^{(r)}=\tau_i^{(r-1)}$, $\mu^{(r)}=\mu^{(r-1)}$, $\sigma^{(r)}=\sigma^{(r-1)}$, $\theta^{(r)}=\theta^{(r-1)}$
 \item simulate a proposal $\mu^{\star} \sim N(\mu^{(r-1)}, \nu_{\mu})$
 \item set $\mu^{(r)} = \mu^{\star}$ with probability
-$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{\star}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{\star})}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{r})} \right\} $$
+$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{\star}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{\star})}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{r})} \right\}\vmadd{,} $$
 			otherwise, set $\mu^{(r)}=\mu^{(r-1)}$
 \item repeat steps 3 and 4 for $\theta$ and $\sigma$
 \item for each $i=1, \dots, N$, propose a new $\tau^{\star}_i$ and accept with probability
-$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,\tau^{(r)}_{i+1}, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )} \right\} $$
+$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,\tau^{(r)}_{i+1}, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )} \right\}\vmadd{.} $$
 \item return to step 2 until a sufficiently large sample has been obtained
 \end{enumerate}
 }
