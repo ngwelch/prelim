@@ -90,7 +90,7 @@ The plot on the right shows the cumulative number of infected plants after each 
 	\begin{subfigure}[b]{0.49\textwidth}
 		\includegraphics[width=\textwidth]{figures/figure_1a.png}
 		\caption{}
-		\label{fig:plants}
+		\label{fig:plants_locations}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[b]{0.49\textwidth}
@@ -98,7 +98,7 @@ The plot on the right shows the cumulative number of infected plants after each 
 		\caption{}
 		\label{fig:cum_infection}
 	\end{subfigure}
-	\caption{(\subref{fig:plants}) Plant locations (meters), infection status (black=infected) after 30 weeks, and sample data used to fit a model (blue); (\subref{fig:cum_infection}) number of infected plants at each inspection time. 
+	\caption{(\subref{fig:plants_locations}) Plant locations (meters), infection status (black=infected) after 30 weeks, and sample data used to fit a model (blue); (\subref{fig:cum_infection}) number of infected plants at each inspection time. 
 	\vmcomment{Explain the blue box here?}}
 	\label{fig:data_plot}
 \end{figure} 
@@ -138,23 +138,23 @@ Note too that the latent variable domains are restricted to the time periods in 
 
 The model must also account for the transmission rate differential induced by the physical distance separating infected and susceptible plants. 
 The transmission rate between an infected plant far from a susceptible plant should be smaller than the rate between two plants next to one another.
-As a result, let the function $\theta f(x_i -x_j; \sigma)$ denote the rate of infection for the plant located at $x_i \in \mathbb{R}^2$ at time $t$ after the plant at $x_j \in \mathbb{R}^2$ was infected prior to $t$. 
+As a result, let the function $\theta f(\boldsymbol{x}_i -\boldsymbol{x}_j; \sigma)$ denote the rate of infection for the plant located at $\boldsymbol{\boldsymbol{x}}_i \in \mathbb{R}^2$ at time $t$ after the plant at $\boldsymbol{x}_j \in \mathbb{R}^2$ was infected prior to $t$. 
 After including a term capturing the rate of spontaneous infection, $\mu$, the hazard function at plant $i$ and time $t$ given the infection times for plants $j \in \{1, 2, \dots, 1742\}$ is 
-$$\lambda(x_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(x_i - x_j; \sigma)\vmadd{.}$$
-Now consider the contribution that plant $x_i$ makes to the likelihood if it is infected at time $0<\tau_i<T=30$ weeks. 
-By definition of the hazard function, the instantaneous infection rate at plant $x_i$ is
+$$\lambda(\boldsymbol{x}_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(\boldsymbol{x}_i - \boldsymbol{x}_j; \sigma).$$
+Now consider the contribution that plant $\boldsymbol{x}_i$ makes to the likelihood if it is infected at time $0<\tau_i<T=30$ weeks. 
+By definition of the hazard function, the instantaneous infection rate at plant $\boldsymbol{x}_i$ is
 \begin{align*}
-\lambda(x_i, t) &= \lim_{dt \to 0} \frac{Pr\{ t \le \tau_i < t+dt | \tau_i \ge t \}}{dt} \\
+\lambda(\boldsymbol{x}_i, t) &= \lim_{dt \to 0} \frac{Pr\{ t \le \tau_i < t+dt | \tau_i \ge t \}}{dt} \\
 	&= \lim_{dt \to 0} \frac{Pr\{ t \le \tau_i < t+dt\}}{Pr\{\tau_i\ge t\}dt}\\
 	&= \lim_{dt \to 0} \frac{F_i(t+dt) - F_i(t)}{(1-F_i(t))dt} \\
 	&= \frac{f_i(t)}{S_i(t)}\\
 	&= -\frac{d}{dt} \log S_i(t) \\
-\implies S_i(t) &= \exp \left\{ - \int_0^t \lambda(x_i,s) ds  \right\} = \exp \left\{ - \Lambda_i(t)  \right\}
+\implies S_i(t) &= \exp \left\{ - \int_0^t \lambda(\boldsymbol{x}_i,s) ds  \right\} = \exp \left\{ - \Lambda_i(t)  \right\}
 \end{align*}
-where $S_i$, $f_i$, and $\Lambda_i$ denote the respective survival function, probability distribution function (pdf), and cumulative hazard for plant $x_i$. 
+where $S_i$, $f_i$, and $\Lambda_i$ denote the respective survival function, probability distribution function (pdf), and cumulative hazard for plant $\boldsymbol{x}_i$. 
 From this expression, it follows that
-$$ f_i(t) = \lambda(x_i,t) \exp \left\{ - \int_0^t \lambda(x_i,t) dt  \right\}\vmadd{,}$$
-establishing the pdf that plant $x_i$ contributes to the likelihood function if $t<T=30$ weeks. 
+$$ f_i(t) = \lambda(\boldsymbol{x}_i,t) \exp \left\{ - \int_0^t \lambda(\boldsymbol{x}_i,t) dt  \right\},$$
+establishing the pdf that plant $\boldsymbol{x}_i$ contributes to the likelihood function if $t<T=30$ weeks. 
 Plants that remain healthy throughout the study period contribute $S_i(t)$ to the likelihood. 
 
 Now consider the infection time for each plant. 
@@ -163,18 +163,18 @@ In this case, each infection indicates a transition from one state to another.
 Each $\lambda(\cdot, t)$ corresponds to the transition rates at time $t$.
 As a result, the complete likelihood function can be written as the product of the densities corresponding to the times spent in each state, i.e.
 \begin{equation} 
-L(\theta, \mu, \tau) = \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt\right \} \lambda(x_i, \tau_i)\right] \left[ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(x_i, t)dt \right\}\right] .
+L(\theta, \mu, \tau) = \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(\boldsymbol{x}_i, t)dt\right \} \lambda(\boldsymbol{x}_i, \tau_i)\right] \left[ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(\boldsymbol{x}_i, t)dt \right\}\right] .
 \end{equation}
 \vmcomment{That derivation would work if all infection times were independent, which is not true for inhomogeneous CTMCs. Therefore, you need to comment on what grounds you can just multiply hazards and survival functions.}
 
-The last component of the model to specify is the kernel function, $f(x_i -x_j; \sigma)$. 
+The last component of the model to specify is the kernel function, $f(\boldsymbol{x}_i -\boldsymbol{x}_j; \sigma)$. 
 In this case, a radially symmetric bivariate Gaussian density is appropriate. 
-\begin{equation} f( x_i-x_j;\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||x_i-x_j||^2}{2\sigma^2} \right\}.
+\begin{equation} f( \boldsymbol{x}_i-\boldsymbol{x}_j;\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||\boldsymbol{x}_i-\boldsymbol{x}_j||^2}{2\sigma^2} \right\}.
 \label{eq:kernel} \end{equation}
 The Gaussian kernel is physically reasonable since the movement of aphids among plants can be modeled by Brownian Motion. 
 With this argument, $\sigma^2$ in (\ref{eq:kernel}) denotes the variance of the distance an aphid travels in one week. 
-\vmcomment{Just noticed, you keep using $x_i - x_j$ without defining it. 
-Are $x$s two-dimensional? If yes, why aren't you using Euclidean distance?}
+\vmcomment{Just noticed, you keep using $\boldsymbol{x}_i - \boldsymbol{x}_j$ without defining it. 
+Are $\boldsymbol{x}$s two-dimensional? If yes, why aren't you using Euclidean distance?}
 
 \subsection{Prior Distributions}
 \citet{Brown} suggests weakly informative priors for the endemic infection rate ($\mu$), the epidemic infection rate ($\theta$), and the standard deviation for distance disease traveled in a week ($\sigma$). 
@@ -211,7 +211,7 @@ where $N=630$ for the full data set.
 Substituting $P(k=0)=P(k \ge N)=0.025$, it follows that 
 \begin{align*}
 \alpha &= \frac{\log 0.025}{\log \left( \frac{\beta}{\beta+1} \right)} \\
-0 &= \sum_{k=0}^{N-1} \exp \left\{ \log \Gamma(\alpha+k) - \log \Gamma(k+1) - \log \Gamma(\alpha) + \alpha \log \left(\frac{\beta}{\beta +1} \right) + x \log \left(\frac{1}{\beta +1} \right) \right\} - 0.975
+0 &= \sum_{k=0}^{N-1} \exp \left\{ \log \Gamma(\alpha+k) - \log \Gamma(k+1) - \log \Gamma(\alpha) + \alpha \log \left(\frac{\beta}{\beta +1} \right) + \boldsymbol{x} \log \left(\frac{1}{\beta +1} \right) \right\} - 0.975
 \end{align*}
 Plugging these equations into a numerical solver with $N=630$ leads to $\alpha=0.6893886$ and $\beta=0.004766281$. 
 These results are consistent with \citet{Brown}'s findings, i.e. $\alpha=0.7$ and $\beta=0.004$. 
@@ -242,7 +242,7 @@ As a result, misspecification of $\mu$ influences inference for every other aspe
 Following the derivation for $\mu$ in \citet{Brown} led to parameter values similar to the authors under the rate parameterization of the Gamma distribution. 
 However, \citep{Brown}'s results were sampled from the scale parameterization of the Gamma distribution without adjustment.
 As a result, the results reported in \citet{Brown} do not follow from a weakly informative $\Gamma(0.7, \text{rate=}0.004)$ prior, but a highly informative $\Gamma(0.7, \text{scale=}0.004)$ prior. 
-See the Results section for more information on the the effects of the error and Appendix \ref{coding_error} for a detailed review of the evidence of the error.  
+See the Results section for more information on the the effects of the error and Appendix \ref{coding_corrections} for a detailed review of the evidence of the error.  
 
 While the derivation of the $\mu$ prior is instructive, the algorithm provides a mechanism to set new priors based on the number of infections observed for other samples. 
 The $\mu$ prior is the only prior in this model that depends on the number of infections observed. 
@@ -469,7 +469,18 @@ This result is consistent with \citet{Brown}'s findings with the full data set a
 	\label{fig:sim_epidemic}
 \end{figure} 
 
-Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all plants in the field. 
+Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all plants using the parameters sampled from the Metropolis algorithm with the sample data. 
+Figure (\ref{fig:all_infections}) shows the raw output of the simulation. 
+Figure (\ref{fig:root_all_infections}) shows the same results, but plots the square root of the paths instead of the raw counts that result from the simulations. 
+Figure 5 in \citet{Brown} uses this transformation. 
+Again, the error bounds are wider for the posterior parameters sampled from the 10\% subset of the plantation data, but the conclusions are effectively the same with some notable exceptions. 
+
+The simulations generated form the sample data led to much more variation in the simulated outbreaks. 
+This result follows from the wider confidence intervals associated with the sampled data; however, it is not clear how much of this additional variation is explained can be explained by sampling the data versus correctly parameterizing the prior $\mu$ prior. 
+The concavity of the weekly infection counts around week 23 is also remarkable. 
+While the weekly infection counts appear higher than \citet{Brown}'s findings, the declining rate of infection seen here implies that the number of new infections per week begins to decline as the fewer and fewer plants remain susceptible. 
+This observation is encouraging for the fidelity of the simple SI model as it suggests that the number of new infections per week begins to decline as the field becomes fully infested. 
+However, this result seems to be a byproduct of a more aggressive infestation instead a departure from previous findings. 
 
 \begin{figure}[H]
 	\centering
@@ -488,6 +499,14 @@ Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all
 	\label{fig:full_field_sim}
 \end{figure} 
 
+Figure (\ref{fig:prediction}) offers another perspective on the results of the sampler. 
+The panels in the figure shows the predicted infection probabilities for each plant starting from the infection status of plants starting with the infections recorded at week 30. 
+Infection probabilities were predicted for weeks 35, 40, 50, and 60. 
+The results show that new infections tend to occur near infected plants as expected, but most of the field is infected by the end of week 60. 
+This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there were coded as so that the first infection time after week 30 arises from the endemic rate instead of the combined influences of the endemic rate and all previously infected plants.
+This oversight leads to artificially low predicted infection probabilities for weeks 35 and 40. 
+It also slows the spread of the epidemic so that many more plants remain susceptible at the end of the 60 weeks than what should be anticipated considering that the authors simulations suggested approximately 40 new infections per week under the model parameters sampled. 
+With that result, one should expect the simulations to suggest around 400 new infections by week 40 in addition to the 583 infections known to exist in week 30. 
 
 \begin{figure}[H]
 	\centering
@@ -515,46 +534,21 @@ Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all
 		\label{fig:week_60}
 	\end{subfigure}
 	\caption{(\subref{fig:week_35}) tbd; (\subref{fig:week_60}) tbd }
-	\label{fig:data_plot}
+	\label{fig:prediction}
 \end{figure} 
 
-While \citet{Brown} presents several variations of the basic and parallel Metropolis algorithms that improve performance, the authors ultimately determined that the statistical model specified was incapable of capturing the underlying complexities of the plantation data. 
-After deriving the parameters for the prior on $\mu$ and simulating epidemics from a subsample of the data, it became clear that the findings reported in \citet{Brown} were based on a flawed Metropolis algorithm implementation. 
-Coding errors were replicated across all implementations and ultimately led the authors to possibly unfounded inference. 
-
-Coding the MCMC algorithm as suggested in \citet{Brown} led to run times many orders of magnitude slower than the times reported. 
-Running times were prohibitively slow even after taking a 10\% sample of the full data set. 
-While this is to be expected for the R prototype, Julia benchmarks against the C programming language indicate that the performance difference cannot be fully explained by the choice of programming language. 
+Improved computing times were also central results reported by the authors.
+Coding the basic MCMC algorithm as suggested in \citet{Brown} led to run times many orders of magnitude slower than the times reported. 
+Comparatively slow execution times were expected for R prototypes, but Julia benchmarks against the C programming language indicate that the performance difference cannot be fully explained by the choice of programming language. 
 Each method was coded according to standard software engineering best practices, including modular programming and test-driven development approach.  
-
-Simulating new epidemics from the posterior parameters conditioned on the infection intervals and from the posterior parameters alone led \citet{Brown} to the results in figure \ref{fig:post_sim_plot}. 
-Comparing the published simulated epidemics based on posterior samples for the number of new infections per week conditioned on the six observations with simulated epidemics based on the posterior parameters without reference to the data shows that the unconditional simulated outbreaks begin much faster than what the data supports. 
-This result is completely determined by the endemic infection rate, $\mu$. 
-Now, time to the first infection is distributed as an exponential random variable with rate $\mu$. 
-If $\mu$ were somehow overestimated, then the time to the first infection would drop substantially.
-In this case, the mismatch between the conditional and unconditional simulations in figure \ref{fig:post_sim_plot} are due to an error in the Metropolis sampler. 
-Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.004)$ with mean 175 and variance $\frac{0.7}{0.004^2}=43,750$, \citep{Brown} specified $\mu \sim \Gamma(0.7, \text{scale}=0.004)$ with mean 0.0028 and variance $1.12\times10^{-5}$. 
-As a result, it is clear from figure \ref{fig:prior_mu_plot} that the posterior samples for $\mu$ only reflects the influence of the prior. 
-After reviewing the authors' source code, it was confirmed that the authors did in fact use the scale parameterization for all gamma priors in the sampler. 
-As a result, $\sigma$ is the only prior properly encoded. 
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{r|rrrrr}
-  Algorithm & \multicolumn{5}{c}{Times for Updating the Following Parameters} \\
- \hline
- & $\theta$ & $\mu$ & $\tau$ & $\sigma$ & Total \\ 
-  \hline
-  Basic & 28.15 & 14.27 & 160.92 & 28.99 & 232.33 \\ 
-  Parallel & 25.08 & 12.57 & 29.99 & 25.17 & 92.81 \\ 
-  Truncated & 1.07 & 1.07 & 1.76 & 1.13 & 5.03 \\ 
-  \hline
-\end{tabular}
-\caption{tbd...}
-\end{table}
-
+Neither the basic implementation or a prototype parallel implementation were able to match the speeds reported. 
 
 \section{Discussion}
+While \citet{Brown} presents several variations of the basic and parallel Metropolis algorithms that improve performance, the authors ultimately determined that the statistical model specified was incapable of capturing the underlying complexities of the plantation data. 
+After deriving the parameters for the prior on $\mu$ and simulating epidemics from a subsample of the data, it became clear that the findings reported in \citet{Brown} were based on a flawed implementations. 
+Coding errors in the Metropolis sampler were replicated across all implementations and ultimately led to results that may not follow from the data.
+
+Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.004)$ with mean 175 and variance $\frac{0.7}{0.004^2}=43,750$, \citep{Brown} specified $\mu \sim \Gamma(0.7, \text{scale}=0.004)$ with mean 0.0028 and variance $1.12\times10^{-5}$. 
 
 \newpage
 \bibliography{prelim_references}
@@ -566,6 +560,12 @@ As a result, $\sigma$ is the only prior properly encoded.
 
 \begin{figure}[H]
 	\centering
+	\begin{subfigure}[b]{\textwidth}
+		\includegraphics[width=\textwidth]{figures/mu_mcmc_chain.png}
+		\caption{}
+	\label{fig:quant_mu}
+	\end{subfigure}
+	\qquad
 	\begin{subfigure}[b]{0.49\textwidth}
 		\includegraphics[width=\textwidth]{figures/mcmc_cum_quant_plot_mu.png}
 		\caption{}
@@ -583,6 +583,12 @@ As a result, $\sigma$ is the only prior properly encoded.
 
 \begin{figure}[H]
 	\centering
+	\begin{subfigure}[b]{\textwidth}
+		\includegraphics[width=\textwidth]{figures/sigma_mcmc_chain.png}
+		\caption{}
+	\label{fig:quant_mu}
+	\end{subfigure}
+	\qquad
 	\begin{subfigure}[b]{0.49\textwidth}
 		\includegraphics[width=\textwidth]{figures/mcmc_cum_quant_plot_sigma.png}
 		\caption{}
@@ -600,6 +606,12 @@ As a result, $\sigma$ is the only prior properly encoded.
 
 \begin{figure}[H]
 	\centering
+	\begin{subfigure}[b]{\textwidth}
+		\includegraphics[width=\textwidth]{figures/theta_mcmc_chain.png}
+		\caption{}
+	\label{fig:quant_mu}
+	\end{subfigure}
+	\qquad
 	\begin{subfigure}[b]{0.49\textwidth}
 		\includegraphics[width=\textwidth]{figures/mcmc_cum_quant_plot_theta.png}
 		\caption{}
@@ -616,9 +628,17 @@ As a result, $\sigma$ is the only prior properly encoded.
 \end{figure} 
 
 \newpage
+\section{Likelihood Derivation}
+\label{likelihood}
 
-\section{Coding Error}
-\label{coding_error}
+\newpage
+\section{Prior Derivations}
+\label{Priors}
+
+\newpage
+
+\section{Coding Corrections}
+\label{coding_corrections}
 
 
 While \citet{Brown} presents several variations of the basic and parallel Metropolis algorithms that improve performance, the authors ultimately determined that the statistical model specified was incapable of capturing the underlying complexities of the plantation data. 
@@ -667,4 +687,18 @@ As a result, $\sigma$ is the only prior properly encoded.
 
 \end{document}
 
-
+%Holdover stuff
+\begin{table}[ht]
+\centering
+\begin{tabular}{r|rrrrr}
+  Algorithm & \multicolumn{5}{c}{Times for Updating the Following Parameters} \\
+ \hline
+ & $\theta$ & $\mu$ & $\tau$ & $\sigma$ & Total \\ 
+  \hline
+  Basic & 28.15 & 14.27 & 160.92 & 28.99 & 232.33 \\ 
+  Parallel & 25.08 & 12.57 & 29.99 & 25.17 & 92.81 \\ 
+  Truncated & 1.07 & 1.07 & 1.76 & 1.13 & 5.03 \\ 
+  \hline
+\end{tabular}
+\caption{tbd...}
+\end{table}
