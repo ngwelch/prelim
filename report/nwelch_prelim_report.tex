@@ -336,10 +336,10 @@ Geweke's diagnostic was computed for the first 10\% and last half of the chains.
 The results did not indicate a lack of convergence for any parameter ($z_{\mu} = -1.0321$, $z_{\sigma} = 0.9407$,  $z_{\theta} = 0.7115$); however, the Raftery-Lewis diagnostic indicated issues with $\sigma$'s convergence. 
 Figures \ref{fig:mu_density} and \ref{fig:sigmaTheta} also suggest that there are issues with $\sigma$ convergence. 
 The 55,000 samples remaining were thinned to obtain a 5,000 observation sample after reviewing the autocorrelation function charts and statistics. 
-This post-processed sample is what is shown in figure \ref{fig:muSigmaThetaDensities}. 
+This post-processed sample is what is shown in \vmdel{f}\vmadd{F}igure \ref{fig:muSigmaThetaDensities}. 
 
-Comparing \ref{fig:mu_density} to the same result reported in \citet{Brown} suggests some discrepancies in the results. 
-Wider confidence intervals for the parameter samples should be expected since the results here arise from a10\% sample while \cite{Brown}'s results were derived for all available data, but the differences are remarkable. 
+Comparing \vmadd{Figure} \ref{fig:mu_density} to the same result reported in \citep{Brown} suggests some discrepancies in the results. 
+Wider confidence intervals for the parameter samples should be expected since the results here arise from a 10\% sample while \cite{Brown}'s results were derived for all available data, but the differences are remarkable. 
 The medians of $\theta$ and $\sigma$ seem well-aligned to the authors' findings, but that does not seem to be the case for $\mu$. 
 In fact, it is a good sign that the results for $\mu$ do not agree. 
 The prior for $\mu$ was derived under the rate parameterization. 
@@ -348,12 +348,12 @@ As a result, the error leads to a highly informative prior and the figure presen
 In this case, the prior should have pulled the posterior parameter distribution lower than what would be expected from a weak or noninformative prior. 
 This last point is critical. 
 
-If a highly informative prior was used, then the density plot in \citet{Brown}'s figure 2a should reflect this fact. 
+If a highly informative prior was used, then the density plot in \citet{Brown}'s \vmdel{f}\vmadd{F}igure 2a should reflect this fact. 
 The figure does not indicate a highly informative prior but suggests instead that a weak prior was used as described. 
 Reviewing the codes for the figures published revealed a second bug. 
-The  $\mu$ density plot published was produced by a third distribution, $\Gamma(0.7, 0.7)$ and appears to result from a second coding error. 
+The  $\mu$ \vmcomment{posterior or pior?} density plot published was produced by a third distribution, $\Gamma(0.7, 0.7)$ and appears to result from a second coding error. 
 
-The results in figure (\ref{fig:theta_density}) and (\ref{fig:sigma_density}) are consistent with the the authors' findings, but finding the right proposal concentration parameters to obtain convergence was a challenge and required several trial runs. 
+The results in \vmdel{f}\vmadd{F}igure (\ref{fig:theta_density}) and (\ref{fig:sigma_density}) are consistent with the the authors' findings, but finding the right proposal \vmdel{concentration} \vmadd{tuning} parameters to obtain convergence was a challenge and required several trial runs. 
 Getting $\sigma$ to converge was especially challenging. 
 Figures (\ref{fig:muSigma}) - (\ref{fig:sigmaTheta}) show pairwise scatter plots of the parameters. 
 These plots are useful to assessing convergence and the 50\%, 80\%, and 95\% point-wise confidence bands  tended to include jagged boundaries when at least one convergence diagnostic indicated problems. 
@@ -395,14 +395,14 @@ These plots are useful to assessing convergence and the 50\%, 80\%, and 95\% poi
 		\caption{}
 		\label{fig:sigmaTheta}
 	\end{subfigure} 
-	\caption{(\subref{fig:mu_density}) - (\subref{fig:sigma_density}) shows the parameter densities;  (\subref{fig:muSigma}) - (\subref{fig:sigmaTheta}) shows pairwise posterior samples }
+	\caption{(\subref{fig:mu_density}) - (\subref{fig:sigma_density}) show\vmdel{s} the parameter \vmadd{posterior} densities;  (\subref{fig:muSigma}) - (\subref{fig:sigmaTheta}) shows pairwise posterior \vmdel{samples} \vmadd{pairwise scatter plots} }
 	\label{fig:muSigmaThetaDensities}
 \end{figure} 
 
 Now consider the infection times. 
 Figure (\ref{fig:time_plots}) shows the distribution of infection times for plants in the interval of the first infection(s) and the interval of the last infections (\ref{fig:last_infections}). 
 The distribution of unobserved infection times during the first period shown in (\ref{fig:first_infections}) suggests that density of infection times increases slightly with passing time. 
-This slopes of the lines here are less than the results reported in \citet{Brown} for two reasons. 
+This slopes of the lines here are less than the results reported \vmdel{in} \vmadd{by} \citet{Brown} for two reasons. 
 First, the results in figure (\ref{fig:time_plots}) correspond to normalized densities. 
 Furthermore, the endemic rate of infection ($\mu$) is the only parameter that influences initial infections. 
 As a result, different values of $\mu$ lead to different results in the two figures. 
@@ -428,7 +428,7 @@ The results indicate that plants nearer to infected plants tend to become infect
 	\label{fig:time_plots}
 \end{figure} 
 
-Figure \ref{fig:sim_epidemic} shows simulated epidemics that correspond to the 165 plant sample enclosed in the blue box in figure (\ref{fig:plants}). 
+Figure \ref{fig:sim_epidemic} shows simulated epidemics that correspond to the 165 plant sample enclosed in the blue box in \vmdel{f}\vmadd{F}igure (\ref{fig:data_plot}) \vmcomment{You are using the same figure label multiple times --- fix it}. 
 The plot reflects the number of infections per week conditioned on the infection intervals recorded (\ref{fig:cond_infections}) and infection times without reference to intervals of infection. 
 Grey lines indicate sample paths, black dashed lines show the 2.5\% and 97.5\% pointwise confidence bounds, and the solid black line corresponds to the median infection count per week. 
 These plots are based on a 10\% sample of the data and as a result lead to less informative interpretation than a larger or the full data set. 
@@ -452,7 +452,7 @@ This result is consistent with \citet{Brown}'s findings with the full data set a
 		\caption{}
 		\label{fig:sim_infection}
 	\end{subfigure}
-	\caption{(\subref{fig:cond_infections}) tbd; (\subref{fig:sim_infection}) tbd }
+	\caption{(\subref{fig:cond_infections}) tbd; (\subref{fig:sim_infection}) tbd \vmcomment{Don't forget to add informative, self-contained captions everywhere}}
 	\label{fig:sim_epidemic}
 \end{figure} 
 
@@ -463,7 +463,7 @@ Figure 5 in \citet{Brown} uses this transformation.
 Again, the error bounds are wider for the posterior parameters sampled from the 10\% subset of the plantation data, but the conclusions are effectively the same with some notable exceptions. 
 
 The simulations generated form the sample data led to much more variation in the simulated outbreaks. 
-This result follows from the wider confidence intervals associated with the sampled data; however, it is not clear how much of this additional variation is explained can be explained by sampling the data versus correctly parameterizing the prior $\mu$ prior. 
+This result follows from the wider confidence intervals associated with the sampled data; however, it is not clear how much of this additional variation \vmdel{is explained} can be explained by sampling the data versus correctly parameterizing the prior $\mu$ prior. 
 The concavity of the weekly infection counts around week 23 is also remarkable. 
 While the weekly infection counts appear higher than \citet{Brown}'s findings, the declining rate of infection seen here implies that the number of new infections per week begins to decline as the fewer and fewer plants remain susceptible. 
 This observation is encouraging for the fidelity of the simple SI model as it suggests that the number of new infections per week begins to decline as the field becomes fully infested. 
@@ -490,7 +490,7 @@ Figure (\ref{fig:prediction}) offers another perspective on the results of the s
 The panels in the figure shows the predicted infection probabilities for each plant starting from the infection status of plants starting with the infections recorded at week 30. 
 Infection probabilities were predicted for weeks 35, 40, 50, and 60. 
 The results show that new infections tend to occur near infected plants as expected, but most of the field is infected by the end of week 60. 
-This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there were coded as so that the first infection time after week 30 arises from the endemic rate instead of the combined influences of the endemic rate and all previously infected plants.
+This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there were coded \vmdel{as} so that the first infection time after week 30 arises from the endemic rate instead of the combined influences of the endemic rate and all previously infected plants.
 This oversight leads to artificially low predicted infection probabilities for weeks 35 and 40. 
 It also slows the spread of the epidemic so that many more plants remain susceptible at the end of the 60 weeks than what should be anticipated considering that the authors simulations suggested approximately 40 new infections per week under the model parameters sampled. 
 With that result, one should expect the simulations to suggest around 400 new infections by week 40 in addition to the 583 infections known to exist in week 30. 
@@ -617,7 +617,8 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 \newpage
 \section{Likelihood Derivation}
 \label{likelihood}
-
+
+
 
 \newpage
 \section{Prior Derivations}
