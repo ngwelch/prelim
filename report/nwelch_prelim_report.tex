@@ -238,7 +238,7 @@ While the derivation of the $\mu$ prior is instructive, the algorithm provides a
 The $\mu$ prior is the only prior in this model that depends on the number of infections observed. 
 
 \subsubsection{$\boldsymbol{\theta}$ Prior Predictive Distribution Specification}
-\citet{Brown} suggests that the $\theta$ prior was determined by considering the average time required to observe a new infection when an infected plant is surrounded by susceptible plants. 
+\citet{Brown} suggest\vmdel{s} that the $\theta$ prior was determined by considering the average time required to observe a new infection when an infected plant is surrounded by susceptible plants. 
 Simulations of the quantities described by the authors led to $\theta$ hyperparameters consistent with those suggested by the authors, but the differences were relatively substantial.
 
 The prior suggested by the authors was based on an interval that saw the average time to infection fall between 1 day at the 2.5\% quantile and 16 months (interpreted as 480 days) at the 97.5\% quantile. 
@@ -265,7 +265,7 @@ Under this prior, $2\sigma_{0.025} \approx 0.1$ meters and $2\sigma_{0.975} \app
 
 \subsection{Inference}
 \label{inference}
-While adding latent variables denoting infection times made it possible to write the likelihood for $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
+While adding latent variables denoting infection times made it possible to \vmdel{write} \vmadd{compute} the likelihood \vmdel{for} \vmadd{as a function of} $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
 The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the unknown infection times in the full data set (583 times in the full data set). 
 Metropolis algorithms are well-suited for such parameterizations as several of the results reviewed in section \ref{literature_review} suggest.  
 In particular, the Metropolis-within-Gibbs implementation with a \textit{non-centering parameterization} used to fit a model to the plantation data is a special case of the algorithm described by \citet{Jewell} and briefly discussed in \citep{ONeill}.  
@@ -277,19 +277,19 @@ The Metropolis algorithm summarized below leads to a posterior sample from $\pi(
 \vbox{
 \begin{enumerate}
 \itemsep0em
-\item Initialize the algorithm at $\tau_i^{0}$, $\mu^{0}$, $\sigma^{0}$, $\theta^{0}$ for iteration $r=0$
-\item at iteration $r$, set $\tau_i^{(r)}=\tau_i^{(r-1)}$, $\mu^{(r)}=\mu^{(r-1)}$, $\sigma^{(r)}=\sigma^{(r-1)}$, $\theta^{(r)}=\theta^{(r-1)}$
-\item simulate a proposal $\mu^{\star} \sim N(\mu^{(r-1)}, \nu_{\mu})$
+\item Initialize the algorithm at $\tau_i^{0}$, $\mu^{0}$, $\sigma^{0}$, $\theta^{0}$ for iteration $r=0$\vmadd{,}
+\item at iteration $r$, set $\tau_i^{(r)}=\tau_i^{(r-1)}$, $\mu^{(r)}=\mu^{(r-1)}$, $\sigma^{(r)}=\sigma^{(r-1)}$, $\theta^{(r)}=\theta^{(r-1)}$\vmadd{,}
+\item simulate a proposal $\mu^{\star} \sim N(\mu^{(r-1)}, \nu_{\mu})$\vmadd{,}
 \item set $\mu^{(r)} = \mu^{\star}$ with probability
-$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{\star}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{\star})}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{r})} \right\} $$
-			otherwise, set $\mu^{(r)}=\mu^{(r-1)}$
-\item repeat steps 3 and 4 for $\theta$ and $\sigma$
+$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{\star}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{\star})}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{r})} \right\}\vmadd{,} $$
+			otherwise, set $\mu^{(r)}=\mu^{(r-1)}$\vmadd{,}
+\item repeat steps 3 and 4 for $\theta$ and $\sigma$\vmadd{,}
 \item for each $i=1, \dots, N$, propose a new $\tau^{\star}_i$ and accept with probability
-$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,\tau^{(r)}_{i+1}, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )} \right\} $$
-\item return to step 2 until a sufficiently large sample has been obtained
+$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,\tau^{(r)}_{i+1}, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )} \right\}\vmadd{,} $$
+\item return to step 2 until a sufficiently large sample has been obtained\vmadd{.}
 \end{enumerate}
 }
-The implementation for this model uses normally distributed proposals with means at the previous $\theta$, $\sigma$, $\mu$, and $\tau_i$ values. 
+The \vmadd{algorithm} implementation for this model uses normally distributed proposals with means at the previous $\theta$, $\sigma$, $\mu$, and $\tau_i$ values. 
 The concentration parameters used for the proposal distributions were $ \nu_{\mu}=0.0005^2$,  $ \nu_{\sigma}=0.55^2$, $\nu_{\theta}=0.05^2$, and $ \nu_{\tau_i}=1$. 
 These values were selected based on trace plots from the parameter samples, target acceptance ratio for each parameter (20-50\% objective), autocorrelation plots, and convergence diagnostic statistics, including the Geweke diagnostic. 
 
@@ -312,7 +312,7 @@ Recognizing this point eliminates the need to compute several terms in the likel
  
 \subsubsection{Parallel Algorithm}
 The parallel implementation distributes the computational burden in two ways. 
-Both focus on computing updating $\tau$. 
+Both focus on computing updating $\boldsymbol{\tau}$. 
 First, the subroutines of the likelihood ratio that cannot run asynchronously--but still require significant computational resources--are broken into pieces and computed in parallel. 
 The other parallelization improvement results from recognizing that some updates are not possible given order that infections were known to have occurred. 
 As a result, proposals that would reverse this known ordering are rejected immediately. 
@@ -326,6 +326,7 @@ Computation times  in early prototypes improved with each suggestion implemented
 While computing times improved, time to complete prototyping runs was still prohibitively long and trends in the parameter samples were inconsistent with results reported in \citet{Brown}. 
 As a result, focus shifted from computation times to identification of discrepancies in the algorithm results. 
 Taking a 10\% sample of the full data set substantially reduced prototyping times; it also led to the discovery of bugs in \citet{Brown}'s implementations. 
+\vmcomment{Shorten the above discussion of computing time and subsampling to a couple of sentences. You are too apologetic right now.}
 
 \textbf{[Re-run sampler with revised sigma proposal variance and several thousand more iterations; pull references for convergence tests too]}
 
