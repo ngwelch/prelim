@@ -9,6 +9,21 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{lipsum}
+\usepackage{xcolor}
+\usepackage{color}
+\usepackage{tikz}
+
+\definecolor{grey100}{RGB}{255,255,255}
+\definecolor{grey60}{RGB}{128,128,128}
+\definecolor{grey80}{RGB}{211,211,211}
+\definecolor{plotBlack}{RGB}{0,0,0}
+
+% normal box
+\newcommand{\sqboxs}{1.2ex}% the square size
+\newcommand{\sqboxf}{0.6pt}% the border in \sqboxEmpty
+\newcommand{\sqbox}[1]{\textcolor{#1}{\rule{\sqboxs}{\sqboxs}}}
+
+\newcommand{\blueline}{\raisebox{2pt}{\tikz{\draw[-,blue,dashed,line width = 2pt](0,0) -- (8mm,0);}}}
 
 %%\setlength{\oddsidemargin}{0.25in}
 %%\setlength{\textwidth}{6in}
@@ -50,7 +65,7 @@ Improving our understanding of these parameters will lead to more effective resp
 
 \citet{Brown} set out to conduct statistical inference for a simple class of disease propagation models by estimating the risk that a susceptible individual contracts a disease from an infected member of the population. 
 In these models, the risk of contracting the disease is modeled at the individual level rather than for the population as a whole. 
-The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individuals\vmadd{'}  exposure to those infected. 
+The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individual's exposure to those infected. 
 While this model is conceptually convenient, the computational complexity and limitations of algorithms capable of fitting such a model create significant challenges.
 \citet{Brown} appeal to standard likelihood methods and the Metropolis algorithm \citep{Metropolis} to estimate the parameters of a simple individual level model (ILM) for disease propagation.
 The emphasis on basic components like the Metropolis sampler and simple disease model focuses readers on common challenges inherent with data for statistical inference with infectious disease data. 
@@ -98,7 +113,7 @@ The plot on the right shows the cumulative number of infected plants after each 
 		\caption{}
 		\label{fig:cum_infection}
 	\end{subfigure}
-	\caption{(\subref{fig:plants_locations}) Plant locations (meters), infection status (black=infected) after 30 weeks, and sample data used to fit a model (blue); (\subref{fig:cum_infection}) number of infected plants at each inspection time. 
+	\caption{(\subref{fig:plants_locations}) Plant locations (meters), infection status (\sqbox{plotBlack} infected) after 30 weeks, and sample data used to fit a model (\protect\blueline); (\subref{fig:cum_infection}) number of infected plants at each inspection time. 
 	\vmcomment{Explain the blue box here?}}
 	\label{fig:data_plot}
 \end{figure} 
@@ -138,43 +153,38 @@ Note too that the latent variable domains are restricted to the time periods in 
 
 The model must also account for the transmission rate differential induced by the physical distance separating infected and susceptible plants. 
 The transmission rate between an infected plant far from a susceptible plant should be smaller than the rate between two plants next to one another.
-As a result, let the function $\theta f(\boldsymbol{x}_i -\boldsymbol{x}_j; \sigma)$ denote the rate of infection for the plant located at $\boldsymbol{\boldsymbol{x}}_i \in \mathbb{R}^2$ at time $t$ after the plant at $\boldsymbol{x}_j \in \mathbb{R}^2$ was infected prior to $t$. 
+As a result, let the function $\theta f(\boldsymbol{x}_i -\boldsymbol{x}_j; \sigma)$ denote the rate of infection for the plant located at $\boldsymbol{\boldsymbol{x}}_i \in \mathbb{R}^2$ at time $t$ after the plant at $\boldsymbol{x}_j \in \mathbb{R}^2$ was infected prior to $t$ with $\boldsymbol{x}_i -\boldsymbol{x}_j$ denoting the distance from plant $i$ to $j$. 
 After including a term capturing the rate of spontaneous infection, $\mu$, the hazard function at plant $i$ and time $t$ given the infection times for plants $j \in \{1, 2, \dots, 1742\}$ is 
 $$\lambda(\boldsymbol{x}_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(\boldsymbol{x}_i - \boldsymbol{x}_j; \sigma).$$
 Now consider the contribution that plant $\boldsymbol{x}_i$ makes to the likelihood if it is infected at time $0<\tau_i<T=30$ weeks. 
-By definition of the hazard function, the instantaneous infection rate at plant $\boldsymbol{x}_i$ is
+The instantaneous infection rate at plant $\boldsymbol{x}_i$ given the sequence of previous infection times and locations is
 \begin{align*}
 \lambda(\boldsymbol{x}_i, t) &= \lim_{dt \to 0} \frac{Pr\{ t \le \tau_i < t+dt | \tau_i \ge t \}}{dt} \\
 	&= \lim_{dt \to 0} \frac{Pr\{ t \le \tau_i < t+dt\}}{Pr\{\tau_i\ge t\}dt}\\
 	&= \lim_{dt \to 0} \frac{F_i(t+dt) - F_i(t)}{(1-F_i(t))dt} \\
-	&= \frac{f_i(t)}{S_i(t)}\\
+	&= \frac{\pi_i(t)}{S_i(t)}\\
 	&= -\frac{d}{dt} \log S_i(t) \\
 \implies S_i(t) &= \exp \left\{ - \int_0^t \lambda(\boldsymbol{x}_i,s) ds  \right\} = \exp \left\{ - \Lambda_i(t)  \right\}
 \end{align*}
-where $S_i$, $f_i$, and $\Lambda_i$ denote the respective survival function, probability distribution function (pdf), and cumulative hazard for plant $\boldsymbol{x}_i$. 
+where $S_i$, $\pi_i$, and $\Lambda_i$ denote the respective survival function, probability density function (pdf), and cumulative hazard for plant $\boldsymbol{x}_i$ given the infection times and locations prior to $t$. 
 From this expression, it follows that
-$$ f_i(t) = \lambda(\boldsymbol{x}_i,t) \exp \left\{ - \int_0^t \lambda(\boldsymbol{x}_i,t) dt  \right\},$$
-establishing the pdf that plant $\boldsymbol{x}_i$ contributes to the likelihood function if $t<T=30$ weeks. 
+$$ \pi_i(t) = \lambda(\boldsymbol{x}_i,t) \exp \left\{ - \int_0^t \lambda(\boldsymbol{x}_i,t) dt  \right\},$$
+establishing the pdf that plant $\boldsymbol{x}_i$ contributes to the likelihood function if $t<T=30$ weeks given the infection status and time spent infected for each plant before $t$. 
 Plants that remain healthy throughout the study period contribute $S_i(t)$ to the likelihood. 
-
-Now consider the infection time for each plant. 
-Based on the model and intuition developed here, it seems that infection times have to be modeled jointly; however, formulating the model in terms of a Continuous Time Markov Chain with the state space of all infection grids simplifies the derivation. 
-In this case, each infection indicates a transition from one state to another. 
-Each $\lambda(\cdot, t)$ corresponds to the transition rates at time $t$.
-As a result, the complete likelihood function can be written as the product of the densities corresponding to the times spent in each state, i.e.
-\begin{equation} 
-L(\theta, \mu, \tau) = \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(\boldsymbol{x}_i, t)dt\right \} \lambda(\boldsymbol{x}_i, \tau_i)\right] \left[ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(\boldsymbol{x}_i, t)dt \right\}\right] .
-\end{equation}
-\vmcomment{That derivation would work if all infection times were independent, which is not true for inhomogeneous CTMCs. Therefore, you need to comment on what grounds you can just multiply hazards and survival functions.}
+Ordering the infection times from the first infection time, $\tau_1$, to the last, $\tau_N$, the probability of observing a particular sequence of infection times and locations up to an ending time $T$ is
+\begin{align*}
+P\{\boldsymbol{x}, \boldsymbol{\tau}\} &= P\{\boldsymbol{x_{1}}, \tau_{1} \} \dots P\{\boldsymbol{x_{N-1}}, \tau_{N-1} \mid \boldsymbol{x_{N-2}}, \tau_{N-2}, \dots, \boldsymbol{x_{1}}, \tau_{1} \}  P\{\boldsymbol{x_N}, \tau_N \mid \boldsymbol{x_{-N}}, \tau_{-N} \} \\
+	&= \prod_{i: \tau_i \le T} \pi_i(\tau_i)  \prod_{i: \tau_i > T} S_i(T) \\
+\implies L(\mu, \sigma, \theta \mid \tau) &= \left[ \prod_{i;\tau_i \le T} \exp \left\{-\int^{\tau_i}_0 \lambda(\boldsymbol{x}_i, t)dt\right \} \lambda(\boldsymbol{x}_i, \tau_i)\right] \left[ \prod_{i;\tau_i > T} \exp \left\{-\int^{\tau_i}_0 \lambda(\boldsymbol{x}_i, t)dt \right\}\right] .
+\end{align*}
+Note that time dependencies are implicit in the definition of $\lambda(\boldsymbol{x_i}, t)$ and the ordering.
 
 The last component of the model to specify is the kernel function, $f(\boldsymbol{x}_i -\boldsymbol{x}_j; \sigma)$. 
 In this case, a radially symmetric bivariate Gaussian density is appropriate. 
-\begin{equation} f( \boldsymbol{x}_i-\boldsymbol{x}_j;\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||\boldsymbol{x}_i-\boldsymbol{x}_j||^2}{2\sigma^2} \right\}.
+\begin{equation} f(\boldsymbol{x}_i-\boldsymbol{x}_j;\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||\boldsymbol{x}_i-\boldsymbol{x}_j||^2}{2\sigma^2} \right\}.
 \label{eq:kernel} \end{equation}
 The Gaussian kernel is physically reasonable since the movement of aphids among plants can be modeled by Brownian Motion. 
 With this argument, $\sigma^2$ in (\ref{eq:kernel}) denotes the variance of the distance an aphid travels in one week. 
-\vmcomment{Just noticed, you keep using $\boldsymbol{x}_i - \boldsymbol{x}_j$ without defining it. 
-Are $\boldsymbol{x}$s two-dimensional? If yes, why aren't you using Euclidean distance?}
 
 \subsection{Prior Distributions}
 \citet{Brown} suggests weakly informative priors for the endemic infection rate ($\mu$), the epidemic infection rate ($\theta$), and the standard deviation for distance disease traveled in a week ($\sigma$). 
@@ -187,37 +197,17 @@ The endemic infection rate influences the number of spontaneous infections over 
 While spontaneously infected plants have the capacity to produce new infections, consider the case where only endemic infections are possible.
 If epidemic infections are not possible, then each of the 583 infections recorded over the 30 week study period could be modeled by a constant endemic infection rate. 
 Assuming 1 infection at the 2.5\% quantile and 630 at 97.5\%, it is possible to solve for the hyperparameters of $\mu \sim \Gamma(\alpha, \beta)$. 
-
-The probability of observing $k$ infections under the prior predictive distribution is
-\begin{equation}
-P(k) = \int_0^{\infty} P(k, \mu) d\mu = \int_0^{\infty} P(k \mid \mu)  P(\mu) d\mu
-\label{eq:prior_predictive}
-\end{equation}
 Note that while only the first infection is recorded, it is possible for plants to be infected multiple times. 
-This realization suggests the sampling model $k \mid \mu \sim$ Poisson($\mu$) is not only convenient, but also appropriate. 
-Therefore, if $\mu \sim \Gamma(\alpha, \beta)$,
-\begin{align*}
-P(k) &= \int_0^{\infty} \frac{\mu^k e^{\mu}}{k!}  \frac{\beta^{\alpha}}{\Gamma(\alpha)} \mu^{\alpha - 1} e^{-\beta \mu}d\mu \\
-	&= \frac{\beta^{\alpha} \Gamma(\alpha+k)}{k! \; \Gamma(\alpha) \; (1+\beta)^{\alpha+k}}  \int_0^{\infty} \frac{(1+\beta)^{\alpha+k}}{\Gamma(\alpha+k)} \mu^{\alpha + k - 1} e^{-(1+\beta)\mu}d\mu \\
-	&= \frac{\Gamma(\alpha+k)}{\Gamma(k+1) \Gamma(\alpha)} \left( \frac{\beta}{1+\beta} \right)^{\alpha} \left( \frac{1}{1+\beta} \right)^k
-\end{align*}
-Now consider the 2.5\% and 97.5\% quantiles for this distribution. 
-\begin{align*}
-P(k=0) &= \left( \frac{\beta}{1+\beta} \right)^{\alpha} \\
-P(k \ge N) &= \sum_{k=N}^{\infty} \frac{\Gamma(\alpha+k)}{\Gamma(k+1) \Gamma(\alpha)} \left( \frac{\beta}{1+\beta} \right)^{\alpha} \left( \frac{1}{1+\beta} \right)^k \\
-	&=1 - \sum_{k=0}^{N-1} \frac{\Gamma(\alpha+k)}{\Gamma(k+1) \Gamma(\alpha)} \left( \frac{\beta}{1+\beta} \right)^{\alpha} \left( \frac{1}{1+\beta} \right)^k 
-\end{align*}
-where $N=630$ for the full data set. 
-Substituting $P(k=0)=P(k \ge N)=0.025$, it follows that 
+This suggests the sampling model $k \mid \mu \sim$ Poisson($\mu$) is convenient and appropriate. 
+Therefore, if $\mu \sim \Gamma(\alpha, \beta)$, $P(k=0)=P(k \ge N)=0.025$ implies that
 \begin{align*}
 \alpha &= \frac{\log 0.025}{\log \left( \frac{\beta}{\beta+1} \right)} \\
-0 &= \sum_{k=0}^{N-1} \exp \left\{ \log \Gamma(\alpha+k) - \log \Gamma(k+1) - \log \Gamma(\alpha) + \alpha \log \left(\frac{\beta}{\beta +1} \right) + \boldsymbol{x} \log \left(\frac{1}{\beta +1} \right) \right\} - 0.975
+0.975 &= \sum_{k=0}^{N-1} \exp \left\{ \log \Gamma(\alpha+k) - \log \Gamma(k+1) - \log \Gamma(\alpha) + \alpha \log \left(\frac{\beta}{\beta +1} \right) + \boldsymbol{x} \log \left(\frac{1}{\beta +1} \right) \right\}
 \end{align*}
 Plugging these equations into a numerical solver with $N=630$ leads to $\alpha=0.6893886$ and $\beta=0.004766281$. 
 These results are consistent with \citet{Brown}'s findings, i.e. $\alpha=0.7$ and $\beta=0.004$. 
 However, these small differences do change the quantiles and variances corresponding to the distribution $\mu_{\text{Brown}} \sim \Gamma(0.7, 0.004)$ and $\mu_{\text{replicated}} \sim \Gamma(0.6893886, 0.004766281)$. 
 Table \ref{table:mu_prior_quantile} shows the quantiles, means, and variances for the prior predictive distribution for $\mu$. 
-\vmcomment{I would skip or move the above equations into the appendix. Poisson integrated against Gamma results in a Negative Binomial distribution, which is pretty standard. I would not dwell on this in the manuscript.}
 
 \begin{table}[ht]
 \centering
@@ -241,14 +231,11 @@ If $\mu$ is too low, then there is no way for an epidemic to emerge within a fie
 As a result, misspecification of $\mu$ influences inference for every other aspect of the model. 
 Following the derivation for $\mu$ in \citet{Brown} led to parameter values similar to the authors under the rate parameterization of the Gamma distribution. 
 However, \citep{Brown}'s results were sampled from the scale parameterization of the Gamma distribution without adjustment.
-As a result, the results reported in \citet{Brown} do not follow from a weakly informative $\Gamma(0.7, \text{rate=}0.004)$ prior, but a highly informative $\Gamma(0.7, \text{scale=}0.004)$ prior. 
+The results reported in \citet{Brown} do not follow from a weakly informative $\Gamma(0.7, \text{rate=}0.004)$ prior, but a highly informative $\Gamma(0.7, \text{scale=}0.004)$ prior. 
 See the Results section for more information on the the effects of the error and Appendix \ref{coding_corrections} for a detailed review of the evidence of the error.  
 
 While the derivation of the $\mu$ prior is instructive, the algorithm provides a mechanism to set new priors based on the number of infections observed for other samples. 
 The $\mu$ prior is the only prior in this model that depends on the number of infections observed. 
-As a result, constructing a model with a subset of the data available or a different infection count requires adjustments to this prior. 
-Priors for $\sigma$ and $\theta$ rely on environmental variables instead of the number of infections observed.
-\vmcomment{Not sure I understand what you mean by the ``environmental variables". Have you defined them before?}
 
 \subsubsection{$\boldsymbol{\theta}$ Prior Predictive Distribution Specification}
 \citet{Brown} suggests that the $\theta$ prior was determined by considering the average time required to observe a new infection when an infected plant is surrounded by susceptible plants. 
@@ -269,8 +256,7 @@ This makes sense in the context of the derivation.
 In summary, many priors satisfied the specification criteria used by the authors and some were less informative than $\theta \sim \Gamma(0.8, \text{rate}=0.1)$, but there was no compelling result that suggesting a departure from the published result. 
 
 \subsubsection{$\boldsymbol{\sigma}$ Prior Predictive Distribution Specification}
-\vmadd{Parameter} $\sigma^2$ denotes the variance of the distance an aphid travels in a week.
-\vmcomment{I advice against starting a sentence with a math symbol/notation.}  
+Parameter $\sigma^2$ denotes the variance of the distance an aphid travels in a week.
 Considering that the distance traveled is modeled as Brownian motion with a zero mean bivariate normal kernel, a 95\% confidence interval for the distance traveled after one week corresponds to an aphid traveling $2\sigma$ at the 97.5\% quantile. 
 With this understanding, $\sigma \sim \Gamma(0.5, \text{scale}=100)$ implies that an aphid travels between $2\sigma_{0.025} \approx 0.1$ meters at the 2.5\% quantile and $2\sigma_{0.975} \approx 500$ meters at the 97.5\% quantile of the prior distribution. 
 While this prior does have large variance and therefore leads to a weakly informative prior for $\sigma$, the most distant points in the field under consideration are separated by approximately 56 meters. 
@@ -282,7 +268,7 @@ Under this prior, $2\sigma_{0.025} \approx 0.1$ meters and $2\sigma_{0.975} \app
 While adding latent variables denoting infection times made it possible to write the likelihood for $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
 The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the unknown infection times in the full data set (583 times in the full data set). 
 Metropolis algorithms are well-suited for such parameterizations as several of the results reviewed in section \ref{literature_review} suggest.  
-In particular, the Metropolis-\vmadd{with}in-Gibbs implementation with a \textit{non-centering parameterization} used to fit a model to the plantation data is a special case of the algorithm described by \citet{Jewell} and briefly discussed in \citep{ONeill}.  
+In particular, the Metropolis-within-Gibbs implementation with a \textit{non-centering parameterization} used to fit a model to the plantation data is a special case of the algorithm described by \citet{Jewell} and briefly discussed in \citep{ONeill}.  
 
 The algorithm relies on the priors, the likelihood formula, and the data. 
 In this case, the data, $\textbf{Y} = \{Y_i:i=1,\dots, m \le N\}$, are the intervals in which each infected plant's status changed from healthy to infected with $m$ denoting the number of intervals in the data and $N$ the total number of infected individuals at the end of the study period. 
@@ -630,10 +616,34 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 \newpage
 \section{Likelihood Derivation}
 \label{likelihood}
+
 
 \newpage
 \section{Prior Derivations}
 \label{Priors}
+
+The probability of observing $k$ infections under the prior predictive distribution is
+$$ P(k) = \int_0^{\infty} P(k, \mu) d\mu = \int_0^{\infty} P(k \mid \mu)  P(\mu) d\mu $$
+Note that while only the first infection is recorded, it is possible for plants to be infected multiple times. 
+This realization suggests the sampling model $k \mid \mu \sim$ Poisson($\mu$) is not only convenient, but also appropriate. 
+Therefore, if $\mu \sim \Gamma(\alpha, \beta)$,
+\begin{align*}
+P(k) &= \int_0^{\infty} \frac{\mu^k e^{\mu}}{k!}  \frac{\beta^{\alpha}}{\Gamma(\alpha)} \mu^{\alpha - 1} e^{-\beta \mu}d\mu \\
+	&= \frac{\beta^{\alpha} \Gamma(\alpha+k)}{k! \; \Gamma(\alpha) \; (1+\beta)^{\alpha+k}}  \int_0^{\infty} \frac{(1+\beta)^{\alpha+k}}{\Gamma(\alpha+k)} \mu^{\alpha + k - 1} e^{-(1+\beta)\mu}d\mu \\
+	&= \frac{\Gamma(\alpha+k)}{\Gamma(k+1) \Gamma(\alpha)} \left( \frac{\beta}{1+\beta} \right)^{\alpha} \left( \frac{1}{1+\beta} \right)^k
+\end{align*}
+The 2.5\% and 97.5\% quantiles for the full data set correspond to $k=0$ and $N$ specified by the size of the field. In particular, 
+\begin{align*}
+P(k=0) &= \left( \frac{\beta}{1+\beta} \right)^{\alpha} \\
+P(k \ge N) &= \sum_{k=N}^{\infty} \frac{\Gamma(\alpha+k)}{\Gamma(k+1) \Gamma(\alpha)} \left( \frac{\beta}{1+\beta} \right)^{\alpha} \left( \frac{1}{1+\beta} \right)^k \\
+	&=1 - \sum_{k=0}^{N-1} \frac{\Gamma(\alpha+k)}{\Gamma(k+1) \Gamma(\alpha)} \left( \frac{\beta}{1+\beta} \right)^{\alpha} \left( \frac{1}{1+\beta} \right)^k 
+\end{align*}
+with $N=630$ for the full data set. 
+Substituting $P(k=0)=P(k \ge N)=0.025$, it follows that 
+\begin{align*}
+\alpha &= \frac{\log 0.025}{\log \left( \frac{\beta}{\beta+1} \right)} \\
+0.975 &= \sum_{k=0}^{N-1} \exp \left\{ \log \Gamma(\alpha+k) - \log \Gamma(k+1) - \log \Gamma(\alpha) + \alpha \log \left(\frac{\beta}{\beta +1} \right) + \boldsymbol{x} \log \left(\frac{1}{\beta +1} \right) \right\}
+\end{align*}
 
 \newpage
 
