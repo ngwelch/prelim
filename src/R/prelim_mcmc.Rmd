@@ -89,8 +89,9 @@ write.csv(dxixj, file="/Users/nwelch/prelim/data/dxixj.csv",
 # Create Test Data Set
 The following codes create a test set that is a small sample of the data from the field. The ideas is that this data offers a reasonably computable sample that should lead us to somewhat reasonable estimates of the full data set parameter values. 
 ```{r}
-reLimit = max(Re(xi))*sqrt(0.1)
-imLimit = max(Im(xi))*sqrt(0.1)
+sampleSize=0.25
+reLimit = max(Re(xi))*sqrt(sampleSize)
+imLimit = max(Im(xi))*sqrt(sampleSize)
 xiSample = xi[Re(xi)<=reLimit & Im(xi)<=imLimit]
 testPlants = which((df$x <= reLimit) & (df$y <= imLimit))
 dfTest = df[testPlants,]
@@ -159,14 +160,8 @@ ggsave(filename="/Users/nwelch/prelim/report/figures/figure_1b.png", fig1b,
        dpi=300, height=4.5, width=4)
 fig1b
 ```
-
-```{r}
-g = grid.arrange(fig1a, fig1b, ncol=2)
-g
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_1.png", g, 
-       dpi=300, height=4, width=6)
-```
 # Implementation Performance
+
 ```{r results = 'asis', echo=FALSE}
 theta = c(28.15, 25.08, 2.38, 1.07, 261.58, 16.65)
 mu = c(14.27, 12.57, 0.25, 1.07, 253.65, 0.35)
@@ -195,7 +190,7 @@ print(tmp, add.to.row = addtorow, hline.after=c(-1, 0, nrow(tmp)),
 ## MCMC Chain Evaluation
 ```{r}
 fullChain = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")
-results = fullChain[10000:nrow(fullChain),]
+results = fullChain[1:nrow(fullChain),]
 accept_results = read.csv(file="~/prelim/data/mcmc_chain_metrics_julia.csv")
 number_of_trials = nrow(results)
 accept_results
@@ -209,8 +204,8 @@ p = ggplot(results) +
   ylab(expression(mu)) +
   xlab("Metropolis Iteration After Burn-in")
 p
-ggsave(filename="/Users/nwelch/prelim/report/figures/mu_mcmc_chain.png", p, 
-       dpi=300, height=4, width=6)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/mu_mcmc_chain.png", p, 
+#       dpi=300, height=4, width=6)
 ```
 
 ```{r}
@@ -221,8 +216,8 @@ p = ggplot(results) +
   ylab(expression(theta)) +
   xlab("Metropolis Iteration After Burn-in")
 p
-ggsave(filename="/Users/nwelch/prelim/report/figures/theta_mcmc_chain.png", p, 
-       dpi=300, height=4, width=6)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/theta_mcmc_chain.png", p, 
+#       dpi=300, height=4, width=6)
 ```
 
 ```{r}
@@ -233,8 +228,8 @@ p = ggplot(results) +
   ylab(expression(sigma)) +
   xlab("Metropolis Iteration After Burn-in")
 p
-ggsave(filename="/Users/nwelch/prelim/report/figures/sigma_mcmc_chain.png", p, 
-       dpi=300, height=4, width=6)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/sigma_mcmc_chain.png", p, 
+#       dpi=300, height=4, width=6)
 ```
 ### Convergence Tests
 ```{r}
@@ -246,66 +241,66 @@ MCMC.theta = mcmc(data=results[,'theta'], start = 1, end = nrow(results), thin =
 ```
 
 ```{r}
-chainTail = (number_of_trials-1e4):number_of_trials
-png(filename="/Users/nwelch/prelim/report/figures/mcmc_cum_quant_plot_mu.png", 
-    res=300, width=4.5, height=4, units='in')
+chainTail = (number_of_trials-1e3):number_of_trials
+#png(filename="/Users/nwelch/prelim/report/figures/mcmc_cum_quant_plot_mu.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3,3,1,0.5), mgp=c(1.5,0.5,0))
 cumuplot(MCMC.mu[chainTail], probs=c(0.025,0.5,0.975), auto.layout = F,
          main=expression(paste("Cumulative Quantile Plot, ", mu)), 
          ylab=expression(paste(mu, " 0.025, 0.5, and 0.975 quantile")),
          xlab="Last 10,000 Metropolis Iterations")
 par(mar=c(5,4,4,1)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 ```{r}
-png(filename="/Users/nwelch/prelim/report/figures/mcmc_cum_quant_plot_sigma.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/mcmc_cum_quant_plot_sigma.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3,3,1,0.5), mgp=c(1.5,0.5,0))
 cumuplot(MCMC.sigma[chainTail], probs=c(0.025,0.5,0.975), auto.layout = F,
          main=expression(paste("Cumulative Quantile Plot, ", sigma)), 
          ylab=expression(paste(sigma, " 0.025, 0.5, and 0.975 quantile")),
          xlab="Last 10,000 Metropolis Iterations")
 par(mar=c(5,4,4,1)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 ```{r}
-png(filename="/Users/nwelch/prelim/report/figures/mcmc_cum_quant_plot_theta.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/mcmc_cum_quant_plot_theta.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3,3,1,0.5), mgp=c(1.5,0.5,0))
 cumuplot(MCMC.theta[chainTail], probs=c(0.025,0.5,0.975), auto.layout = F,
          main=expression(paste("Cumulative Quantile Plot, ", theta)), 
          ylab=expression(paste(theta, " 0.025, 0.5, and 0.975 quantile")),
          xlab="Last 10,000 Metropolis Iterations")
 par(mar=c(5,4,4,1)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 
 ```{r}
-png(filename="/Users/nwelch/prelim/report/figures/mcmc_acf_plot_mu.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/mcmc_acf_plot_mu.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3,3,1,0.5), mgp=c(1.5,0.5,0))
 autocorr.plot(MCMC.mu, lag.max=30,
               main=expression(paste("Post Burn-in ACF Plot, ", mu)))
 par(mar=c(5,4,4,1)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 ```{r}
-png(filename="/Users/nwelch/prelim/report/figures/mcmc_acf_plot_sigma.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/mcmc_acf_plot_sigma.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3,3,1,0.5), mgp=c(1.5,0.5,0))
 autocorr.plot(MCMC.sigma, lag.max=30, 
               main=expression(paste("Post Burn-in ACF Plot, ", sigma)))
 par(mar=c(5,4,4,1)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 ```{r}
-png(filename="/Users/nwelch/prelim/report/figures/mcmc_acf_plot_theta.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/mcmc_acf_plot_theta.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3,3,1,0.5), mgp=c(1.5,0.5,0))
 autocorr.plot(MCMC.theta, lag.max=30, 
               main=expression(paste("Post Burn-in ACF Plot, ", theta)))
 par(mar=c(5,4,4,1)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 
 ```{r}
@@ -324,8 +319,6 @@ raftery.diag(MCMC.chain, q=0.95, r=0.01, s=0.95, converge.eps=0.001)
 ```{r}
 thin = round(number_of_trials / min(effectiveSize(MCMC.chain)))
 thinResults = results[seq(1, number_of_trials, thin),]
-write.csv(thinResults, file="/Users/nwelch/prelim/data/thinResults.csv",
-          row.names=FALSE)
 ```
 
 ```{r}
@@ -347,17 +340,17 @@ pscale = p+xlim(0, 0.01)+geom_density(aes(x=scale))
 
 g = grid.arrange(prate, pscale, ncol=2)
 g
-ggsave(filename="/Users/nwelch/prelim/report/figures/rateScaleCompare.png", g, 
-       dpi=300, height=4, width=6)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/rateScaleCompare.png", g, 
+#       dpi=300, height=4, width=6)
 ```
 
 ```{r, echo=FALSE}
-prior_mu = rgamma(10000, shape=1.307877, rate=0.06334962) #, mu_rate=
+prior_mu = rgamma(10000, shape=1.307877, rate=1.900488) #1.900488 0.06334962
 post_mu = thinResults$mu
 
 par(mar=c(4,5,1,1))
 stripwidth=0.5
-plot(NA, xlim=c(0, 80), ylim=c(0,2),
+plot(NA, xlim=c(0, 3), ylim=c(0,2),
 		xlab=expression(mu), yaxt="n", ylab="")
 axis(2, at=c(0.5, 1.5), labels=c("Posterior", "Prior"), las=1)
 
@@ -372,8 +365,8 @@ par(mar=c(5,4,4,2)+0.1)
 xseq = seq(0, 1, len=5e4)[-(1:4)]
 stripwidth=0.5
 
-png(filename="/Users/nwelch/prelim/report/figures/rate_v_scale_plot.png", 
-    res=300, width=4, height=2, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/rate_v_scale_plot.png", 
+#    res=300, width=4, height=2, units='in')
 par(mar=c(3,5,1,0.5), mgp=c(2,0.5,0.5))
 
 plot(NA, xlim=c(0, 0.008), ylim=c(0,3),
@@ -393,14 +386,14 @@ denstrip(xseq, dgamma(xseq, shape=0.7, scale=0.004), horiz=T, at=0.5,
 		ticks=c(0.7*0.004, gammaMedian), width=stripwidth)
 
 par(mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 ```{r, echo=FALSE}
-prior_mu = rgamma(10000, shape=1.307877, rate=0.06334962) #, mu_rate=
+prior_mu = rgamma(10000, shape=1.307877, rate=1.900488) #0.06334962
 post_mu = thinResults$mu
 
-png(filename="/Users/nwelch/prelim/report/figures/figure_2a.png", 
-    res=300, width=4, height=2, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_2a.png", 
+#    res=300, width=4, height=2, units='in')
 par(mar=c(2.35,5,1,0.5), mgp=c(1.5,0.5,0), cex.axis=1.25, cex.lab=1.25)
 stripwidth=0.5
 plot(NA, xlim=c(0, 0.01), ylim=c(0,2),
@@ -413,16 +406,16 @@ denstrip(prior_mu, horiz=T, at=1.5,
 denstrip(post_mu, horiz=T, at=0.5,
 		ticks=quantile(post_mu, probs=c(0.025, 0.5, 0.975)), width=stripwidth)
 par(mar=c(5,4,4,2)+0.1, mgp=c(3,1,0), cex.axis=1, cex.lab=1)
-dev.off()
+#dev.off()
 ```
 
 ```{r, echo=FALSE}
-prior_sigma = rgamma(10000, shape=0.5, scale=100)
+prior_sigma = rgamma(10000, shape=0.5, scale=8)
 post_sigma = thinResults$sigma
 
 par(mar=c(4,5,1,1))
 stripwidth=0.5
-plot(NA, xlim=c(0, 250), ylim=c(0,2),
+plot(NA, xlim=c(0, 25), ylim=c(0,2),
 		xlab=expression(sigma), yaxt="n", ylab="")
 axis(2, at=c(0.5, 1.5), labels=c("Posterior", "Prior"), las=1)
 
@@ -438,8 +431,8 @@ par(mar=c(5,4,4,2)+0.1)
 prior_sigma = rgamma(10000, shape=0.5, scale=100)
 post_sigma = thinResults$sigma
 
-png(filename="/Users/nwelch/prelim/report/figures/figure_2c.png", 
-    res=300, width=4, height=2, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_2c.png", 
+#    res=300, width=4, height=2, units='in')
 par(mar=c(2.35,5,1,0.5), mgp=c(1.5,0.5,0), cex.axis=1.25, cex.lab=1.25)
 stripwidth=0.5
 plot(NA, xlim=c(0.5, 2.5), ylim=c(0,2),
@@ -452,16 +445,16 @@ denstrip(prior_sigma, horiz=T, at=1.5,
 denstrip(post_sigma, horiz=T, at=0.5,
 		ticks=quantile(post_sigma, probs=c(0.025, 0.5, 0.975)), width=stripwidth)
 par(mar=c(5,4,4,2)+0.1, mgp=c(3,1,0), cex.axis=1, cex.lab=1)
-dev.off()
+#dev.off()
 ```
 
 ```{r, echo=FALSE}
-prior_theta = rgamma(10000, shape=0.8, rate=0.1)
+prior_theta = rgamma(10000, shape=0.85, rate=0.145)
 post_theta = thinResults$theta
 
 par(mar=c(4,5,1,1))
 stripwidth=0.5
-plot(NA, xlim=c(0, 35), ylim=c(0,2),
+plot(NA, xlim=c(0, 25), ylim=c(0,2),
 		xlab=expression(theta), yaxt="n", ylab="")
 axis(2, at=c(0.5, 1.5), labels=c("Posterior", "Prior"), las=1)
 
@@ -476,8 +469,8 @@ par(mar=c(5,4,4,2)+0.1)
 prior_theta = rgamma(10000, shape=0.8, rate=0.1)
 post_theta = thinResults$theta
 
-png(filename="/Users/nwelch/prelim/report/figures/figure_2b.png", 
-    res=300, width=4, height=2, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_2b.png", 
+#    res=300, width=4, height=2, units='in')
 par(mar=c(2.35,5,1,0.5), mgp=c(1.5,0.5,0), cex.axis=1.25, cex.lab=1.25)
 stripwidth=0.5
 plot(NA, xlim=c(0.05, 0.2), ylim=c(0,2),
@@ -490,7 +483,7 @@ denstrip(prior_theta, horiz=T, at=1.5,
 denstrip(post_theta, horiz=T, at=0.5,
 		ticks=quantile(post_theta, probs=c(0.025, 0.5, 0.975)), width=stripwidth)
 par(mar=c(5,4,4,2)+0.1, mgp=c(3,1,0), cex.axis=1, cex.lab=1)
-dev.off()
+#dev.off()
 ```
 
 ```{r}
@@ -533,8 +526,8 @@ fig2d = ggplot(data=thinResults, aes(sigma, mu)) +
   xlab(expression(sigma))+
   ylab(expression(mu))+
   xlim(0.5,2.5)
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_2d.png", fig2d, 
-       dpi=300, height=4, width=4)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/figure_2d.png", fig2d, 
+#       dpi=300, height=4, width=4)
 fig2d
 ```
 ```{r, echo=FALSE}
@@ -556,8 +549,8 @@ fig2e = ggplot(data=thinResults, aes(theta, mu)) +
   xlab(expression(theta))+
   ylab(expression(mu))+
   xlim(0.05,0.2)
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_2e.png", fig2e, 
-       dpi=300, height=4, width=4)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/figure_2e.png", fig2e, 
+#       dpi=300, height=4, width=4)
 fig2e
 ```
 ```{r, echo=FALSE}
@@ -580,61 +573,45 @@ fig2f = ggplot(data=thinResults, aes(theta, sigma)) +
   ylab(expression(sigma))+
   ylim(0.5, 3)+
   xlim(0.05, 0.2)
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_2f.png", fig2f, 
-       dpi=300, height=4, width=4)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/figure_2f.png", fig2f, 
+#       dpi=300, height=4, width=4)
 fig2f
 ```
 # Simulated Epidemics 
-```{r}
-source("~/prelim/src/R/simulation.R")
-colMeans(thinResults[,c('mu', 'sigma', 'theta')])
-oneSim = scalarEpiSim(mu=0.004352591,
-                      sigma=1.196941925,
-                      theta=0.117329258,
-                      simCount=1000)
-hist(colSums(oneSim[,-1]), breaks=30)
-timeSim = scalarEpiSim(returnSummary = FALSE)
-
-
-u = c(0.0028, 0.0025, 0.003)
-s = c(1.1, 1.15, 1.08)
-t = c(0.11, 0.08, 0.15)
-vecSim = vectorEpiSim(muSigmaThetaVector=cbind(u,s,t), simCount=100)
-```
-
 ## Conditional Posterior Simulated Infections Per Week
 ```{r}
+source("~/prelim/src/R/simulation.R")
 sampleTau = thinResults[,1:(ncol(thinResults)-3)]
 pstSim = postEpiSim(sampleTau)
 
-png(filename="/Users/nwelch/prelim/report/figures/figure_4a.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_4a.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(x=pstSim['weeks',], y=t(pstSim[seq(5, nrow(pstSim), 10),]), 
         type='l', lty=3, col="grey",
-        ylab="infections per week", xlab="week")
+        ylab="infections per week", xlab="week", ylim=c(0,10))
 matlines(x=pstSim['weeks',], y=t(pstSim[2:4,]), col='black', lty=c(1,2,2), lwd=3)
 abline(v=timeInspected, lty=3, col="grey")
 par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 
 ```{r}
-sampleParams = thinResults[seq(1, nrow(thinResults), 100), c('mu', 'sigma', 'theta')]
+sampleParams = thinResults[seq(1, nrow(thinResults), 10), c('mu', 'sigma', 'theta')]
 vecSimSample = vectorEpiSim(muSigmaThetaVector=sampleParams, 
                             dxixj=dxixjSample, simCount=10)
 ```
 
 ```{r}
-png(filename="/Users/nwelch/prelim/report/figures/figure_4b.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_4b.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(x=vecSimSample$week, y=vecSimSample[,5:ncol(vecSim)], type='l', 
         lty=3, col="grey", ylab="infections per week", xlab="week", ylim=c(0,10))
 matlines(x=c(0, vecSimSample$week), y=rbind(c(0,0,0), vecSimSample[,2:4]),
          col='black', lty=c(1,2,2), lwd=3)
 par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 
 ## All Plants Unconditional Simulation
@@ -644,20 +621,20 @@ vecSim = vectorEpiSim(muSigmaThetaVector=sampleParams, dxixj=dxixj)
 ```
 
 ```{r}
-png(filename="/Users/nwelch/prelim/report/figures/figure_4b_all_plants.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_4b_all_plants.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(x=vecSim$week, y=vecSim[,5:ncol(vecSim)], type='l', lty=3, col="grey",
         ylab="infections per week", xlab="week", ylim=c(0,80))
 matlines(x=c(0, vecSim$week), y=rbind(c(0,0,0), vecSim[,2:4]), 
          col='black', lty=c(1,2,2), lwd=3)
 par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 
 ```{r}
-png(filename="/Users/nwelch/prelim/report/figures/figure_4b_all_plants_root.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_4b_all_plants_root.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(x=vecSim$week, y=sqrt(vecSim[,5:ncol(vecSim)]), type='l', lty=3, 
         col="grey", ylab="infections per week", xlab="week",
@@ -668,7 +645,7 @@ axis(2, at=sqrt(theYseq), labels=theYseq)
 matlines(x=c(0,vecSim$week), y=rbind(c(0,0,0), sqrt(vecSim[,2:4])), col='black', 
          lty=c(1,2,2), lwd=3)
 par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 ## Density Plots
 ```{r}
@@ -684,13 +661,13 @@ for(psd in 1:length(tmp))
                             tmp[[psd]]$density/sum(tmp[[psd]]$density))
 
 ### First time period
-png(filename="/Users/nwelch/prelim/report/figures/figure_3a.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_3a.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(breakPoints[-1]-diff(breakPoints)/2, postSampleDensity, 
         type="l", lty=1, col="grey50",
         xlab="week", ylab="density", ylim=c(0, 0.2))
-dev.off()
+#dev.off()
 ```
 
 ```{r}
@@ -713,8 +690,8 @@ centering = postSampleDensity - postSampleMean
 centeringL = apply(centering[1:3,], 2, sum)
 centeringH = apply(centering[7:9,], 2, sum)
 
-png(filename="/Users/nwelch/prelim/report/figures/figure_3b.png", 
-    res=300, width=4.5, height=4, units='in')
+#png(filename="/Users/nwelch/prelim/report/figures/figure_3b.png", 
+#    res=300, width=4.5, height=4, units='in')
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 plotLines=c(order(centeringL, decreasing=T)[c(1,10)],
             order(centeringH, decreasing=T)[c(1,10)])
@@ -726,7 +703,7 @@ matlines(breakPoints[-1]-diff(breakPoints)/2,
          postSampleDensity[,plotLines], 
          col="black",lty=c(1,1,2,2), lwd=1.5)
 par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
-dev.off()
+#dev.off()
 ```
 # Post 30 Weeks Prediction 
 ```{r}
@@ -769,8 +746,8 @@ fig5a = ggplot(data=prediction, aes(x, y, color=week35), legend=FALSE) +
   scale_colour_manual(values = thecol, guide=FALSE) +
   theme_bw() +
   theme_void() 
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5a.png", fig5a, 
-       dpi=300, height=6, width=3.5)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5a.png", fig5a, 
+#       dpi=300, height=6, width=3.5)
 fig5a
 ```
 
@@ -780,8 +757,8 @@ fig5b = ggplot(data=prediction, aes(x, y, color=week40), legend=FALSE) +
   scale_colour_manual(values = thecol, guide=FALSE) +
   theme_bw() +
   theme_void()
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5b.png", fig5b, 
-       dpi=300, height=6, width=3.5)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5b.png", fig5b, 
+#       dpi=300, height=6, width=3.5)
 fig5b
 ```
 ```{r}
@@ -790,8 +767,8 @@ fig5c = ggplot(data=prediction, aes(x, y, color=week50), legend=FALSE) +
   scale_colour_manual(values = thecol, guide=FALSE) +
   theme_bw() +
   theme_void() 
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5c.png", fig5c, 
-       dpi=300, height=6, width=3.5)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5c.png", fig5c, 
+#       dpi=300, height=6, width=3.5)
 fig5c
 ```
 
@@ -801,17 +778,10 @@ fig5d = ggplot(data=prediction, aes(x, y, color=week60), legend=FALSE) +
   scale_colour_manual(values = thecol, guide=FALSE) +
   theme_bw() +
   theme_void() 
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5d.png", fig5d, 
-       dpi=300, height=6, width=3.5)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5d.png", fig5d, 
+#       dpi=300, height=6, width=3.5)
 fig5d
 ```
-
-```{r, warning=FALSE}
-g = grid.arrange(fig5a, fig5b, fig5c, fig5d, ncol=4)
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_5.png", g, 
-       dpi=300, height=6, width=12)
-```
-
 ```{r}
 n=100
 x = seq(0, 30, 30/n)

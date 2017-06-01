@@ -1,7 +1,10 @@
 library(MASS)
 library(xtable)
 
-# mu prior
+##############################################################################
+################################## mu prior ##################################
+##############################################################################
+
 get_mu_a = function(B, alpha=0.05){
   a = log(alpha/2)/log(B/(1+B))
   return(a)
@@ -42,37 +45,11 @@ rownames(muPriorTable) = c("Brown et. al.", "Replicated")
 tmp = xtable(muPriorTable, caption = "")
 print(tmp)
 
-# sigma prior
-qgamma(c(0.025,0.975), shape=0.75, scale=16)
-geta = function(a,b=10){
-  3.9*(gamma(a) - pgamma(b*0.1,a, lower=F)*gamma(a))-gamma(a)+pgamma(b*50,a, lower=F)*gamma(a)
-}
+##############################################################################
+################################# theta prior ################################
+##############################################################################
 
-a=seq(0.1, 1,by=0.05)
-b=seq(5,200,by=1)
-N=10000
-eps=1e-3
-coverage = matrix(0, nrow=length(a)*length(b), ncol=4)
-colnames(coverage) = c("a", "b", "cover", "abCoversIt")
-it=1
-for(i in a){
-  for(j in b){
-    smpl = rgamma(N, shape=i, scale=j)
-    F500 = sum(smpl<500)/N
-    F0.1 = sum(smpl<0.1)/N
-    cover_ij = F500 - F0.1
-    abCoversIt = F500<0.975 & F0.1<0.025
-    #abCoversIt = ifelse(abs(cover_ij-0.95)<=eps, TRUE, FALSE)
-    coverage[it,] = c(i, j, cover_ij, abCoversIt)
-    it = it+1
-  }
-}
-coverage = as.data.frame(coverage)
-coverage = coverage[coverage$abCoversIt==TRUE,]
-weakestSigmaPrior = coverage[which.max(coverage$a*(coverage$b**2)),]
-
-# theta prior
-qgamma(c(0.025, 0.975), shape=0.76, rate=0.0495)
+#qgamma(c(0.025, 0.975), shape=0.76, rate=0.0495)
 source('~/prelim/src/R/simulation.R')
 tmp = read.csv(file="/Users/nwelch/prelim/data/plantData.csv")[,c('x', 'y')]
 tmp = sort(unique(tmp$x + 1.0i*tmp$y))
@@ -83,7 +60,7 @@ testPlants = data.frame(xi, plant=1:9)
 plot(testPlants$xi, pch="")
 text(testPlants$xi, label=testPlants$plant)
 
-# Simulation when the infected plant can be any of the 9
+########### Simulation when the infected plant can be any of the 9 ###########
 it=1
 alpha = seq(0.1, 1, 0.1)
 beta_rate = seq(0.025, 0.5, 0.05)
@@ -120,7 +97,7 @@ tmp = coverage[coverage$cover<(0.95+dci) & coverage$cover>(0.95-dci),]
 candidateMeans = tmp[order(tmp$cover, decreasing=TRUE),]
 colMeans(candidateMeans)
 
-# Simulation when the infected plant can only be the center plant
+###### Simulation when the infected plant can only be the center plant #######
 it=1
 nextit=1
 alpha = seq(0.5, 0.95, 0.05)
