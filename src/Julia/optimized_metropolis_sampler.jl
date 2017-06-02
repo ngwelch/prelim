@@ -8,11 +8,11 @@ function run_mcmc_sampler(mu, theta, sigma, df, dxixj;
                               mu_shape=0.7, mu_rate=0.004,
                               theta_shape=0.8, theta_rate=10.0,
                               sigma_shape=0.5, sigma_scale=100.0,
-                              v_mu=0.0005, v_sigma=0.05, v_theta=0.005
+                              v_mu=0.0005, v_sigma=0.05, v_theta=0.005,
                               metricsFile="mcmc_chain_metrics_julia",
                               chainFile="mcmc_chain_julia")
 
-    @everywhere include("/Users/nwelch/prelim/src/Julia/optimized_likelihood_functions.jl");
+    @everywhere include(homedir()*"/prelim/src/Julia/optimized_likelihood_functions.jl");
 
     #setup 
     infectionCount = sum(df[:t6]);
@@ -144,10 +144,10 @@ function run_mcmc_sampler(mu, theta, sigma, df, dxixj;
     chainColNames = append!(chainColNames, ["mu","sigma","theta"]);
     names!(chainDF, chainColNames);
 
-    writetable("/Users/nwelch/prelim/data/"*metricsFile*".csv", 
+    writetable(homedir()*"/prelim/data/"*metricsFile*".csv", 
         metrics, separator = ',', header = true);
 
-    writetable("/Users/nwelch/prelim/data/"*chainFile*".csv", 
+    writetable(homedir()*"/prelim/data/"*chainFile*".csv", 
         chainDF, separator = ',', header = true);
 
 end
