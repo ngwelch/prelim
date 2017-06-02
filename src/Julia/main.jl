@@ -10,7 +10,7 @@ mu = 0.003;
 sigma = 1.0;
 theta = 0.1;
 
-run_mcmc_sampler(mu, theta, sigma, df, dxixj, trials=5000,
+run_mcmc_sampler(mu, theta, sigma, df, dxixj, trials=75000,
                      mu_shape=1.307877, mu_rate=1.900488,   #2 plants/wk
                      theta_shape=0.85, theta_rate=0.145,    #94% CI
                      sigma_shape=0.75, sigma_scale=8,       #0.1-50m
