@@ -134,6 +134,7 @@ function run_mcmc_sampler(mu, theta, sigma, df, dxixj;
         mu_accept=accept[1],
         sigma_accept=accept[2],
         theta_accept=accept[3],
+	trial_count=accept[4],
         mu_time=mu_time,
         sigma_time=sigma_time,
         theta_time=theta_time,
