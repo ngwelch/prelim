@@ -21,6 +21,7 @@ library(gridBase)
 library(grid)
 library(raster)
 library(coda)
+library(data.table)
 ```
 
 # Data Cleanup
@@ -189,9 +190,9 @@ print(tmp, add.to.row = addtorow, hline.after=c(-1, 0, nrow(tmp)),
 ```
 ## MCMC Chain Evaluation
 ```{r}
-fullChain = read.csv(file="~/prelim/data/mcmc_chain_julia.csv")
-results = fullChain[1:nrow(fullChain),]
-accept_results = read.csv(file="~/prelim/data/mcmc_chain_metrics_julia.csv")
+fullChain = fread(file="~/prelim/data/20k_25pct_aws_chain.csv")
+results = fullChain[1e4:nrow(fullChain),]
+accept_results = fread(file="~/prelim/data/20k_25pct_aws_metrics.csv")
 number_of_trials = nrow(results)
 accept_results
 ```
@@ -210,6 +211,17 @@ p
 
 ```{r}
 p = ggplot(results) + 
+  geom_path(aes(x=1:number_of_trials, y=sigma)) +
+  theme_bw() +
+  theme(axis.text=element_text(size=12), axis.title=element_text(size=12)) +
+  ylab(expression(sigma)) +
+  xlab("Metropolis Iteration After Burn-in")
+p
+#ggsave(filename="/Users/nwelch/prelim/report/figures/sigma_mcmc_chain.png", p, 
+#       dpi=300, height=4, width=6)
+```
+```{r}
+p = ggplot(results) + 
   geom_path(aes(x=1:number_of_trials, y=theta)) +
   theme_bw() +
   theme(axis.text=element_text(size=12), axis.title=element_text(size=12)) +
@@ -220,17 +232,6 @@ p
 #       dpi=300, height=4, width=6)
 ```
 
-```{r}
-p = ggplot(results) + 
-  geom_path(aes(x=1:number_of_trials, y=sigma)) +
-  theme_bw() +
-  theme(axis.text=element_text(size=12), axis.title=element_text(size=12)) +
-  ylab(expression(sigma)) +
-  xlab("Metropolis Iteration After Burn-in")
-p
-#ggsave(filename="/Users/nwelch/prelim/report/figures/sigma_mcmc_chain.png", p, 
-#       dpi=300, height=4, width=6)
-```
 ### Convergence Tests
 ```{r}
 MCMC.chain = mcmc(data=results[,c('mu', 'sigma', 'theta')], 
@@ -319,29 +320,6 @@ raftery.diag(MCMC.chain, q=0.95, r=0.01, s=0.95, converge.eps=0.001)
 ```{r}
 thin = round(number_of_trials / min(effectiveSize(MCMC.chain)))
 thinResults = results[seq(1, number_of_trials, thin),]
-```
-
-```{r}
-ss = 1e4
-rate = rgamma(ss, shape=0.7, rate=0.004)
-scale = rgamma(ss, shape=0.7, scale=0.004)
-rateScale=data.frame(rate, scale)
-
-
-p = ggplot(data=rateScale)+
-    theme(axis.line = element_line(colour='black'),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.border = element_blank(),
-    panel.background = element_blank())
-
-prate = p+xlim(0, 800)+geom_density(aes(x=rate))
-pscale = p+xlim(0, 0.01)+geom_density(aes(x=scale))
-
-g = grid.arrange(prate, pscale, ncol=2)
-g
-#ggsave(filename="/Users/nwelch/prelim/report/figures/rateScaleCompare.png", g, 
-#       dpi=300, height=4, width=6)
 ```
 
 ```{r, echo=FALSE}
@@ -589,7 +567,7 @@ pstSim = postEpiSim(sampleTau)
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(x=pstSim['weeks',], y=t(pstSim[seq(5, nrow(pstSim), 10),]), 
         type='l', lty=3, col="grey",
-        ylab="infections per week", xlab="week", ylim=c(0,10))
+        ylab="infections per week", xlab="week", ylim=c(0,20))
 matlines(x=pstSim['weeks',], y=t(pstSim[2:4,]), col='black', lty=c(1,2,2), lwd=3)
 abline(v=timeInspected, lty=3, col="grey")
 par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
@@ -607,7 +585,7 @@ vecSimSample = vectorEpiSim(muSigmaThetaVector=sampleParams,
 #    res=300, width=4.5, height=4, units='in')
 par(mar=c(3.1, 3.1, 1, 1), mgp=c(2,0.5,0))
 matplot(x=vecSimSample$week, y=vecSimSample[,5:ncol(vecSim)], type='l', 
-        lty=3, col="grey", ylab="infections per week", xlab="week", ylim=c(0,10))
+        lty=3, col="grey", ylab="infections per week", xlab="week", ylim=c(0,20))
 matlines(x=c(0, vecSimSample$week), y=rbind(c(0,0,0), vecSimSample[,2:4]),
          col='black', lty=c(1,2,2), lwd=3)
 par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
@@ -649,7 +627,7 @@ par(mfcol=c(1,1), mar=c(5,4,4,2)+0.1, mgp=c(3,1,0))
 ```
 ## Density Plots
 ```{r}
-tauPosterior = thinResults[,-((ncol(thinResults)-2):ncol(thinResults))]
+tauPosterior = as.data.frame(thinResults[,-((ncol(thinResults)-2):ncol(thinResults))])
 firstKeep = colSums(tauPosterior <= round(min(apply(tauPosterior, 2, max))))>0
 firstInfectionPosterior = tauPosterior[,firstKeep]
 fromTo = round(c(min(firstInfectionPosterior), max(firstInfectionPosterior)))
@@ -730,7 +708,7 @@ for(ct in cumTimes){
 }
 colnames(probInfected) = colnames(probInfLabel) = paste0("week", cumTimes)
 
-prediction = data.frame(df[,c("x", "y")], fig5Labels)
+prediction = data.frame(df[,c("x", "y")], probInfLabel)
 ```
 
 ```{r}
@@ -782,6 +760,8 @@ fig5d = ggplot(data=prediction, aes(x, y, color=week60), legend=FALSE) +
 #       dpi=300, height=6, width=3.5)
 fig5d
 ```
+# GGPlot Versions of Figures
+
 ```{r}
 n=100
 x = seq(0, 30, 30/n)
@@ -901,8 +881,8 @@ grid.arrange(fig4a, fig4b, fig4c, fig4d, ncol=2, nrow=2)
 ```{r, warning=FALSE}
 g = grid.arrange(fig4a, fig4b, ncol=2)
 g
-ggsave(filename="/Users/nwelch/prelim/report/figures/figure_4.png", g, 
-       dpi=300, height=4, width=12)
+#ggsave(filename="/Users/nwelch/prelim/report/figures/figure_4.png", g, 
+#       dpi=300, height=4, width=12)
 ```
 
 

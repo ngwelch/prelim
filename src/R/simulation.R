@@ -84,9 +84,9 @@ vectorEpiSim = function(muSigmaThetaVector, startTime=0, endTime=30,
   if(returnSummary){
     result = NULL
     for(s in 1:nrow(muSigmaThetaVector)){
-      mu = muSigmaThetaVector[s,1]
-      sigma = muSigmaThetaVector[s,2]
-      theta = muSigmaThetaVector[s,3]
+      mu = as.numeric(muSigmaThetaVector[s,1])
+      sigma = as.numeric(muSigmaThetaVector[s,2])
+      theta = as.numeric(muSigmaThetaVector[s,3])
       sim = scalarEpiSim(mu, sigma, theta, startTime, endTime, dxixj,
                          susceptableAtStart, simCount, returnSummary=TRUE)
       
@@ -105,9 +105,9 @@ vectorEpiSim = function(muSigmaThetaVector, startTime=0, endTime=30,
   } else {
     out = NULL
     for(s in 1:nrow(muSigmaThetaVector)){
-      mu = muSigmaThetaVector[s,1]
-      sigma = muSigmaThetaVector[s,2]
-      theta = muSigmaThetaVector[s,3]
+      mu = as.numeric(muSigmaThetaVector[s,1])
+      sigma = as.numeric(muSigmaThetaVector[s,2])
+      theta = as.numeric(muSigmaThetaVector[s,3])
       sim = scalarEpiSim(mu, sigma, theta, startTime, endTime, dxixj,  
                          susceptableAtStart, simCount=1, returnSummary=FALSE)
       out=cbind(out, sim)

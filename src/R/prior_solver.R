@@ -10,7 +10,7 @@ get_mu_a = function(B, alpha=0.05){
   return(a)
 }
 
-get_mu_dtail = function(B, xmax=70, alpha=0.05){
+get_mu_dtail = function(B, xmax=160, alpha=0.05){
   a = get_mu_a(B, alpha)
   
   tailProb = 0
