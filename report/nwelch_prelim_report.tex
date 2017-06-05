@@ -23,7 +23,8 @@
 \newcommand{\sqboxf}{0.6pt}% the border in \sqboxEmpty
 \newcommand{\sqbox}[1]{\textcolor{#1}{\rule{\sqboxs}{\sqboxs}}}
 
-\newcommand{\blueline}{\raisebox{2pt}{\tikz{\draw[-,blue,dashed,line width = 2pt](0,0) -- (8mm,0);}}}
+\newcommand{\blueline}{\raisebox{2pt}{\tikz{\draw[-,blue,solid,line width = 1.5pt](0,0) -- (8mm,0);}}}
+\newcommand{\blackline}{\raisebox{2pt}{\tikz{\draw[-,black,solid,line width = 1.5pt](0,0) -- (8mm,0);}}}
 
 %%\setlength{\oddsidemargin}{0.25in}
 %%\setlength{\textwidth}{6in}
@@ -78,16 +79,16 @@ It also assumes complete data are available to fit these early models.
 \citet{Becker} surveys a number of models and the types of data sets these models can accommodate. 
 His work highlights the distinction between studying disease spread from a mathematical perspective as apposed to a statistical inference point of view and summarizes the principle challenges that disease propagation presents to many statistical methods.
 
-\citet{ONeill} build\vmdel{s} on the idea that one does not have to choose between parameter inference and mathematical insight. 
+\citet{ONeill} build on the idea that one does not have to choose between parameter inference and mathematical insight. 
 In fact, the authors show that a basic Metropolis-Hastings algorithm clears the way for more realistic modeling assumptions and interdependencies. 
-\citet{Jewell} provide\vmdel{s} an updated perspective and outlines several MCMC design patterns for convoluted models.
-\citet{Brown} primarily contribute\vmdel{s} another example of these methods along with computational efficiencies beyond an MCMC framework. 
+\citet{Jewell} provide an updated perspective and outlines several MCMC design patterns for convoluted models.
+\citet{Brown} primarily contribute another example of these methods along with computational efficiencies beyond an MCMC framework. 
 
 While improved computation power made it possible to fit more complex statistical disease models, evaluating likelihood functions that include spatio-temporal components becomes challenging when there are more than a few observations. 
 As the cost to evaluate the likelihood function grows with the number of observations, the utility of MCMC approaches declines.
-\citet{McKinley} propose\vmdel{s} Approximately Bayesian Computation (ABC) that avoids calculating the likelihood by generating an approximation to the likelihood function with each pass through an MCMC implementation. 
+\citet{McKinley} propose Approximately Bayesian Computation (ABC) that avoids calculating the likelihood by generating an approximation to the likelihood function with each pass through an MCMC implementation. 
 \citet{Diggle} forgoes the complexity of full likelihood inference and instead appeals to the partial likelihood function to carry out inference for the parameters of interest. 
-\citet{Deardon} use\vmdel{s} a Taylor series to approximate infection kernel function to make a Bayesian approach computationally practical. 
+\citet{Deardon} use a Taylor series to approximate infection kernel function to make a Bayesian approach computationally practical. 
 These methods led to reduced computation times compared to a full MCMC implementation, but each either require either completely observed data or are too closely associated with a particular model to be widely applicable.
 
 \subsection{Statistical Problem}
@@ -113,8 +114,7 @@ The plot on the right shows the cumulative number of infected plants after each 
 		\caption{}
 		\label{fig:cum_infection}
 	\end{subfigure}
-	\caption{(\subref{fig:plants_locations}) Plant locations (meters), infection status (\sqbox{plotBlack} infected) after 30 weeks, and sample data used to fit a model (\protect\blueline); (\subref{fig:cum_infection}) number of infected plants at each inspection time. 
-	\vmcomment{Explain the blue box here?}}
+	\caption{(\subref{fig:plants_locations}) Plant locations (meters), infection status (\sqbox{plotBlack} infected) after 30 weeks, and sample data used to fit a model (\protect\blueline); (\subref{fig:cum_infection}) number of infected plants at each inspection time for the whole field (\protect\blackline) and the sample data (\protect\blueline).}
 	\label{fig:data_plot}
 \end{figure} 
 
@@ -126,7 +126,7 @@ As a result, plausible inference methods must include some means to account for 
 The sugar cane data set includes the infection status of 1,742 plants at six times over a 30 week period. 
 Each observation lists the plant location on a two-dimensional rectangular grid and whether it is infected at week 0, 6, 10, 14, 19, 23, and 30.
 For this data set, it is reasonable to assume that once a plant becomes infected, it remains infected for the duration of the study period. 
-A Susceptible-Infected (SI) model is appropriate for this situation and \citet{Jewell} provide\vmdel{s} a thorough introduction to this and other disease model frameworks. 
+A Susceptible-Infected (SI) model is appropriate for this situation and \citet{Jewell} provide a thorough introduction to this and other disease model frameworks. 
 While an SI model is particularly simple, the model is plausible considering the way that an infestation proceeds for an aphid infestation of plants over 30 weeks time. 
 Starting with a simple model also emphasizes the principle statistical components handled by \citet{Brown}, e.g. unknown infection times. 
 
@@ -238,7 +238,7 @@ While the derivation of the $\mu$ prior is instructive, the algorithm provides a
 The $\mu$ prior is the only prior in this model that depends on the number of infections observed. 
 
 \subsubsection{$\boldsymbol{\theta}$ Prior Predictive Distribution Specification}
-\citet{Brown} suggest\vmdel{s} that the $\theta$ prior was determined by considering the average time required to observe a new infection when an infected plant is surrounded by susceptible plants. 
+\citet{Brown} suggest that the $\theta$ prior was determined by considering the average time required to observe a new infection when an infected plant is surrounded by susceptible plants. 
 Simulations of the quantities described by the authors led to $\theta$ hyperparameters consistent with those suggested by the authors, but the differences were relatively substantial.
 
 The prior suggested by the authors was based on an interval that saw the average time to infection fall between 1 day at the 2.5\% quantile and 16 months (interpreted as 480 days) at the 97.5\% quantile. 
@@ -265,7 +265,7 @@ Under this prior, $2\sigma_{0.025} \approx 0.1$ meters and $2\sigma_{0.975} \app
 
 \subsection{Inference}
 \label{inference}
-While adding latent variables denoting infection times made it possible to \vmdel{write} \vmadd{compute} the likelihood \vmdel{for} \vmadd{as a function of} $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
+While adding latent variables denoting infection times made it possible to compute the likelihood as a function of $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
 The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the unknown infection times in the full data set (583 times in the full data set). 
 Metropolis algorithms are well-suited for such parameterizations as several of the results reviewed in section \ref{literature_review} suggest.  
 In particular, the Metropolis-within-Gibbs implementation with a \textit{non-centering parameterization} used to fit a model to the plantation data is a special case of the algorithm described by \citet{Jewell} and briefly discussed in \citep{ONeill}.  
@@ -277,19 +277,19 @@ The Metropolis algorithm summarized below leads to a posterior sample from $\pi(
 \vbox{
 \begin{enumerate}
 \itemsep0em
-\item Initialize the algorithm at $\tau_i^{0}$, $\mu^{0}$, $\sigma^{0}$, $\theta^{0}$ for iteration $r=0$\vmadd{,}
-\item at iteration $r$, set $\tau_i^{(r)}=\tau_i^{(r-1)}$, $\mu^{(r)}=\mu^{(r-1)}$, $\sigma^{(r)}=\sigma^{(r-1)}$, $\theta^{(r)}=\theta^{(r-1)}$\vmadd{,}
-\item simulate a proposal $\mu^{\star} \sim N(\mu^{(r-1)}, \nu_{\mu})$\vmadd{,}
+\item Initialize the algorithm at $\tau_i^{0}$, $\mu^{0}$, $\sigma^{0}$, $\theta^{0}$ for iteration $r=0$,
+\item at iteration $r$, set $\tau_i^{(r)}=\tau_i^{(r-1)}$, $\mu^{(r)}=\mu^{(r-1)}$, $\sigma^{(r)}=\sigma^{(r-1)}$, $\theta^{(r)}=\theta^{(r-1)}$,
+\item simulate a proposal $\mu^{\star} \sim N(\mu^{(r-1)}, \nu_{\mu})$,
 \item set $\mu^{(r)} = \mu^{\star}$ with probability
-$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{\star}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{\star})}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{r})} \right\}\vmadd{,} $$
-			otherwise, set $\mu^{(r)}=\mu^{(r-1)}$\vmadd{,}
-\item repeat steps 3 and 4 for $\theta$ and $\sigma$\vmadd{,}
+$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{\star}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{\star})}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} ) \; p_{\mu}(\mu^{r})} \right\}, $$
+			otherwise, set $\mu^{(r)}=\mu^{(r-1)}$,
+\item repeat steps 3 and 4 for $\theta$ and $\sigma$,
 \item for each $i=1, \dots, N$, propose a new $\tau^{\star}_i$ and accept with probability
-$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,\tau^{(r)}_{i+1}, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )} \right\}\vmadd{,} $$
-\item return to step 2 until a sufficiently large sample has been obtained\vmadd{.}
+$$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,\tau^{(r)}_{i+1}, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )}{L(\tau^{(r)}_1, \dots, \tau^{(r)}_N \mid \mu^{(r)}, \theta^{(r)}, \sigma^{(r)} )} \right\}, $$
+\item return to step 2 until a sufficiently large sample has been obtained.
 \end{enumerate}
 }
-The \vmadd{algorithm} implementation for this model uses normally distributed proposals with means at the previous $\theta$, $\sigma$, $\mu$, and $\tau_i$ values. 
+The algorithm implementation for this model uses normally distributed proposals with means at the previous $\theta$, $\sigma$, $\mu$, and $\tau_i$ values. 
 The concentration parameters used for the proposal distributions were $ \nu_{\mu}=0.0005^2$,  $ \nu_{\sigma}=0.55^2$, $\nu_{\theta}=0.05^2$, and $ \nu_{\tau_i}=1$. 
 These values were selected based on trace plots from the parameter samples, target acceptance ratio for each parameter (20-50\% objective), autocorrelation plots, and convergence diagnostic statistics, including the Geweke diagnostic. 
 
@@ -336,9 +336,9 @@ Geweke's diagnostic was computed for the first 10\% and last half of the chains.
 The results did not indicate a lack of convergence for any parameter ($z_{\mu} = -1.0321$, $z_{\sigma} = 0.9407$,  $z_{\theta} = 0.7115$); however, the Raftery-Lewis diagnostic indicated issues with $\sigma$'s convergence. 
 Figures \ref{fig:mu_density} and \ref{fig:sigmaTheta} also suggest that there are issues with $\sigma$ convergence. 
 The 55,000 samples remaining were thinned to obtain a 5,000 observation sample after reviewing the autocorrelation function charts and statistics. 
-This post-processed sample is what is shown in \vmdel{f}\vmadd{F}igure \ref{fig:muSigmaThetaDensities}. 
+This post-processed sample is what is shown in Figure \ref{fig:muSigmaThetaDensities}. 
 
-Comparing \vmadd{Figure} \ref{fig:mu_density} to the same result reported in \citep{Brown} suggests some discrepancies in the results. 
+Comparing Figure \ref{fig:mu_density} to the same result reported in \citep{Brown} suggests some discrepancies in the results. 
 Wider confidence intervals for the parameter samples should be expected since the results here arise from a 10\% sample while \cite{Brown}'s results were derived for all available data, but the differences are remarkable. 
 The medians of $\theta$ and $\sigma$ seem well-aligned to the authors' findings, but that does not seem to be the case for $\mu$. 
 In fact, it is a good sign that the results for $\mu$ do not agree. 
@@ -348,12 +348,12 @@ As a result, the error leads to a highly informative prior and the figure presen
 In this case, the prior should have pulled the posterior parameter distribution lower than what would be expected from a weak or noninformative prior. 
 This last point is critical. 
 
-If a highly informative prior was used, then the density plot in \citet{Brown}'s \vmdel{f}\vmadd{F}igure 2a should reflect this fact. 
+If a highly informative prior was used, then the density plot in \citet{Brown}'s Figure 2a should reflect this fact. 
 The figure does not indicate a highly informative prior but suggests instead that a weak prior was used as described. 
 Reviewing the codes for the figures published revealed a second bug. 
 The  $\mu$ \vmcomment{posterior or pior?} density plot published was produced by a third distribution, $\Gamma(0.7, 0.7)$ and appears to result from a second coding error. 
 
-The results in \vmdel{f}\vmadd{F}igure (\ref{fig:theta_density}) and (\ref{fig:sigma_density}) are consistent with the the authors' findings, but finding the right proposal \vmdel{concentration} \vmadd{tuning} parameters to obtain convergence was a challenge and required several trial runs. 
+The results in Figure (\ref{fig:theta_density}) and (\ref{fig:sigma_density}) are consistent with the the authors' findings, but finding the right proposal tuning parameters to obtain convergence was a challenge and required several trial runs. 
 Getting $\sigma$ to converge was especially challenging. 
 Figures (\ref{fig:muSigma}) - (\ref{fig:sigmaTheta}) show pairwise scatter plots of the parameters. 
 These plots are useful to assessing convergence and the 50\%, 80\%, and 95\% point-wise confidence bands  tended to include jagged boundaries when at least one convergence diagnostic indicated problems. 
@@ -395,14 +395,14 @@ These plots are useful to assessing convergence and the 50\%, 80\%, and 95\% poi
 		\caption{}
 		\label{fig:sigmaTheta}
 	\end{subfigure} 
-	\caption{(\subref{fig:mu_density}) - (\subref{fig:sigma_density}) show\vmdel{s} the parameter \vmadd{posterior} densities;  (\subref{fig:muSigma}) - (\subref{fig:sigmaTheta}) shows pairwise posterior \vmdel{samples} \vmadd{pairwise scatter plots} }
+	\caption{(\subref{fig:mu_density}) - (\subref{fig:sigma_density}) show the parameter posterior densities;  (\subref{fig:muSigma}) - (\subref{fig:sigmaTheta}) shows pairwise posterior pairwise scatter plots }
 	\label{fig:muSigmaThetaDensities}
 \end{figure} 
 
 Now consider the infection times. 
 Figure (\ref{fig:time_plots}) shows the distribution of infection times for plants in the interval of the first infection(s) and the interval of the last infections (\ref{fig:last_infections}). 
 The distribution of unobserved infection times during the first period shown in (\ref{fig:first_infections}) suggests that density of infection times increases slightly with passing time. 
-This slopes of the lines here are less than the results reported \vmdel{in} \vmadd{by} \citet{Brown} for two reasons. 
+This slopes of the lines here are less than the results reported by \citet{Brown} for two reasons. 
 First, the results in figure (\ref{fig:time_plots}) correspond to normalized densities. 
 Furthermore, the endemic rate of infection ($\mu$) is the only parameter that influences initial infections. 
 As a result, different values of $\mu$ lead to different results in the two figures. 
@@ -428,7 +428,7 @@ The results indicate that plants nearer to infected plants tend to become infect
 	\label{fig:time_plots}
 \end{figure} 
 
-Figure \ref{fig:sim_epidemic} shows simulated epidemics that correspond to the 165 plant sample enclosed in the blue box in \vmdel{f}\vmadd{F}igure (\ref{fig:data_plot}) \vmcomment{You are using the same figure label multiple times --- fix it}. 
+Figure \ref{fig:sim_epidemic} shows simulated epidemics that correspond to the 165 plant sample enclosed in the blue box in Figure (\ref{fig:data_plot})
 The plot reflects the number of infections per week conditioned on the infection intervals recorded (\ref{fig:cond_infections}) and infection times without reference to intervals of infection. 
 Grey lines indicate sample paths, black dashed lines show the 2.5\% and 97.5\% pointwise confidence bounds, and the solid black line corresponds to the median infection count per week. 
 These plots are based on a 10\% sample of the data and as a result lead to less informative interpretation than a larger or the full data set. 
@@ -490,7 +490,7 @@ Figure (\ref{fig:prediction}) offers another perspective on the results of the s
 The panels in the figure shows the predicted infection probabilities for each plant starting from the infection status of plants starting with the infections recorded at week 30. 
 Infection probabilities were predicted for weeks 35, 40, 50, and 60. 
 The results show that new infections tend to occur near infected plants as expected, but most of the field is infected by the end of week 60. 
-This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there were coded \vmdel{as} so that the first infection time after week 30 arises from the endemic rate instead of the combined influences of the endemic rate and all previously infected plants.
+This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there were coded so that the first infection time after week 30 arises from the endemic rate instead of the combined influences of the endemic rate and all previously infected plants.
 This oversight leads to artificially low predicted infection probabilities for weeks 35 and 40. 
 It also slows the spread of the epidemic so that many more plants remain susceptible at the end of the 60 weeks than what should be anticipated considering that the authors simulations suggested approximately 40 new infections per week under the model parameters sampled. 
 With that result, one should expect the simulations to suggest around 400 new infections by week 40 in addition to the 583 infections known to exist in week 30. 
@@ -550,7 +550,7 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 	\begin{subfigure}[b]{\textwidth}
 		\includegraphics[width=\textwidth]{figures/mu_mcmc_chain.png}
 		\caption{}
-	\label{fig:quant_mu}
+	\label{fig:chain_mu}
 	\end{subfigure}
 	\qquad
 	\begin{subfigure}[b]{0.49\textwidth}
@@ -564,8 +564,8 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 		\caption{}
 		\label{fig:acf_mu}
 	\end{subfigure}
-	\caption{(\subref{fig:quant_mu}) tbd; (\subref{fig:acf_mu}) tbd }
-	\label{fig:data_plot}
+	\caption{(\subref{fig:chain_mu}) tbd; (\subref{fig:quant_mu}) tbd; (\subref{fig:acf_mu}) tbd }
+	\label{fig:diagnostics_mu}
 \end{figure} 
 
 \begin{figure}[H]
@@ -573,7 +573,7 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 	\begin{subfigure}[b]{\textwidth}
 		\includegraphics[width=\textwidth]{figures/sigma_mcmc_chain.png}
 		\caption{}
-	\label{fig:quant_mu}
+	\label{fig:chain_sigma}
 	\end{subfigure}
 	\qquad
 	\begin{subfigure}[b]{0.49\textwidth}
@@ -587,8 +587,8 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 		\caption{}
 		\label{fig:acf_sigma}
 	\end{subfigure}
-	\caption{(\subref{fig:quant_sigma}) tbd; (\subref{fig:acf_sigma}) tbd }
-	\label{fig:data_plot}
+	\caption{(\subref{fig:chain_sigma}) tbd; (\subref{fig:quant_sigma}) tbd; (\subref{fig:acf_sigma}) tbd }
+	\label{fig:diagnostics_sigma}
 \end{figure} 
 
 \begin{figure}[H]
@@ -596,7 +596,7 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 	\begin{subfigure}[b]{\textwidth}
 		\includegraphics[width=\textwidth]{figures/theta_mcmc_chain.png}
 		\caption{}
-	\label{fig:quant_mu}
+	\label{fig:chain_theta}
 	\end{subfigure}
 	\qquad
 	\begin{subfigure}[b]{0.49\textwidth}
@@ -610,8 +610,8 @@ Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.00
 		\caption{}
 		\label{fig:acf_theta}
 	\end{subfigure}
-	\caption{(\subref{fig:quant_theta}) tbd; (\subref{fig:acf_theta}) tbd }
-	\label{fig:data_plot}
+	\caption{(\subref{fig:chain_theta}) tbd; (\subref{fig:quant_theta}) tbd; (\subref{fig:acf_theta}) tbd }
+	\label{fig:diagnostics_theta}
 \end{figure} 
 
 \newpage
