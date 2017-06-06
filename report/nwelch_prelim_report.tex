@@ -401,7 +401,7 @@ Figure (\ref{fig:muTheta}) offers fewer insights into the parameter relationship
 Figure (\ref{fig:sigmaTheta}) offers one of the clearest indications that the posterior distribution of $\sigma$ is right skewed. 
 The concentric rings indicate the 50\%, 80\%, and 95\% point-wise confidence bands for each pair. 
 
-Figure (\ref{fig:time_plots}) shows the distribution of infection times for plants in the interval of the first infection(s) and the interval of the last infections (\ref{fig:last_infections}). 
+Figure (\ref{fig:time_plots}) shows the distribution of infection times for plants in the interval of the first infection(s)  (\ref{fig:first_infections}) and the interval of the last infections (\ref{fig:last_infections}). 
 The distribution of unobserved infection times during the first period shown in (\ref{fig:first_infections}) suggests that density of infection times increases slightly with passing time. 
 This slopes of the lines here are less than the results reported by \citet{Brown} for two reasons. 
 First, the results in figure (\ref{fig:time_plots}) correspond to normalized densities. 
@@ -429,16 +429,16 @@ The results indicate that plants nearer to infected plants tend to become infect
 	\label{fig:time_plots}
 \end{figure} 
 
-Figure \ref{fig:sim_epidemic} shows simulated epidemics that correspond to the 165 plant sample enclosed in the blue box in Figure (\ref{fig:data_plot})
+Figure \ref{fig:sim_epidemic} shows simulated epidemics that correspond to the 416 plant sample enclosed in the blue box in Figure (\ref{fig:data_plot}). 
 The plot reflects the number of infections per week conditioned on the infection intervals recorded (\ref{fig:cond_infections}) and infection times without reference to intervals of infection. 
 Grey lines indicate sample paths, black dashed lines show the 2.5\% and 97.5\% pointwise confidence bounds, and the solid black line corresponds to the median infection count per week. 
-These plots are based on a 10\% sample of the data and as a result lead to less informative interpretation than a larger or the full data set. 
-The figures do, however, indicate that the posterior parameters sampled lead to many more infections earlier than what was observed in the sample data. 
+These plots are based on a 25\% sample of the data and as a result lead to less informative interpretation than a larger or the full data set. 
+The figures do, however, indicate that the posterior parameters sampled lead to more infections earlier than what was observed in the sample data. 
 The unconditional simulation also failed to appreciably account for the discontinuity around week 23. 
 On the other hand, the 97.5\% upper bound for the simulated unconditional simulations contain the bounds tor the conditional simulations. 
 The bounds also widen as time progresses. 
 These results suggest that the model has some capacity to reflect the dynamics of an outbreak, but the applicability of the model to new outbreaks is limited.
-This result is consistent with \citet{Brown}'s findings with the full data set and correcting the bug on the $\mu$ prior did not lead to materially different inference in simulations for the first few weeks of an outbreak. 
+This is consistent with \citet{Brown}'s findings with the full data set and correcting the bug on the $\mu$ prior was not enough to change the inference for the first few weeks of a new outbreak. 
 
 \begin{figure}[H]
 	\centering
@@ -464,7 +464,7 @@ Figure 5 in \citet{Brown} uses this transformation.
 Again, the error bounds are wider for the posterior parameters sampled from the 10\% subset of the plantation data, but the conclusions are effectively the same with some notable exceptions. 
 
 The simulations generated form the sample data led to much more variation in the simulated outbreaks. 
-This result follows from the wider confidence intervals associated with the sampled data; however, it is not clear how much of this additional variation \vmdel{is explained} can be explained by sampling the data versus correctly parameterizing the prior $\mu$ prior. 
+This result follows from the wider confidence intervals associated with the sampled data; however, it is not clear how much of this additional variation can be explained by sampling the data versus correctly parameterizing the prior $\mu$ prior. 
 The concavity of the weekly infection counts around week 23 is also remarkable. 
 While the weekly infection counts appear higher than \citet{Brown}'s findings, the declining rate of infection seen here implies that the number of new infections per week begins to decline as the fewer and fewer plants remain susceptible. 
 This observation is encouraging for the fidelity of the simple SI model as it suggests that the number of new infections per week begins to decline as the field becomes fully infested. 
@@ -488,13 +488,15 @@ However, this result seems to be a byproduct of a more aggressive infestation in
 \end{figure} 
 
 Figure (\ref{fig:prediction}) offers another perspective on the results of the sampler. 
-The panels in the figure shows the predicted infection probabilities for each plant starting from the infection status of plants starting with the infections recorded at week 30. 
+Each panel shows the predicted infection probabilities for each plant starting from the infection status of plants starting with the infections recorded at week 30. 
 Infection probabilities were predicted for weeks 35, 40, 50, and 60. 
 The results show that new infections tend to occur near infected plants as expected, but most of the field is infected by the end of week 60. 
 This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there were coded so that the first infection time after week 30 arises from the endemic rate instead of the combined influences of the endemic rate and all previously infected plants.
 This oversight leads to artificially low predicted infection probabilities for weeks 35 and 40. 
-It also slows the spread of the epidemic so that many more plants remain susceptible at the end of the 60 weeks than what should be anticipated considering that the authors simulations suggested approximately 40 new infections per week under the model parameters sampled. 
-With that result, one should expect the simulations to suggest around 400 new infections by week 40 in addition to the 583 infections known to exist in week 30. 
+It also slows the spread of the epidemic so that many more plants remain susceptible at the end of 60 weeks.
+Considering that the authors' simulations suggested approximately 40 new infections per week under the model parameters sampled, having most of the plants remain healthy after 10 weeks time proves the claim. 
+With this rate of infection, one should expect the simulations to suggest around 400 new infections by week 40 in addition to the 583 infections known to exist in week 30. 
+That is, the probabilities should not remain mostly unchanged for uninfected plants at the end of 10 weeks if the sampler functioned properly. 
 
 \begin{figure}[H]
 	\centering
@@ -525,8 +527,8 @@ With that result, one should expect the simulations to suggest around 400 new in
 	\label{fig:prediction}
 \end{figure} 
 
-Improved computing times were also central results reported by the authors.
-Coding the basic MCMC algorithm as suggested in \citet{Brown} led to run times many orders of magnitude slower than the times reported. 
+In addition to inference for ILMs, improved computing times were a central result reported by the authors.
+However, coding the basic MCMC algorithm as suggested in \citet{Brown} led to run times many orders of magnitude slower than the times reported. 
 Comparatively slow execution times were expected for R prototypes, but Julia benchmarks against the C programming language indicate that the performance difference cannot be fully explained by the choice of programming language. 
 Each method was coded according to standard software engineering best practices, including modular programming and test-driven development approach.  
 Neither the basic implementation or a prototype parallel implementation were able to match the speeds reported. 
