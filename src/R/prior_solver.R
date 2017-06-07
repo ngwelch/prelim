@@ -10,6 +10,7 @@ get_mu_a = function(B, alpha=0.05){
   return(a)
 }
 
+# xmax = 160 for 25% sample; 120 for simulated 25% sample
 get_mu_dtail = function(B, xmax=160, alpha=0.05){
   a = get_mu_a(B, alpha)
   
@@ -25,14 +26,13 @@ get_mu_dtail = function(B, xmax=160, alpha=0.05){
 
 b = uniroot(get_mu_dtail, c(0.0001, 10), tol=.Machine$double.eps^0.5)
 mu_shape = get_mu_a(b$root)
-mu_rate = b$root
-mu_mode = (mu_shape-1)/mu_rate
+mu_rate = b$root*30
 curve(dgamma(x, shape=mu_shape, rate=mu_rate), from=0.01, to=80)
 
 q=c(0.025, 0.975)
-replicatedQuantile = qgamma(q, shape=get_mu_a(b$root), rate=b$root)
-replicatedMean = get_mu_a(b$root)/b$root
-replicatedVar = get_mu_a(b$root)/(b$root**2)
+replicatedQuantile = qgamma(q, shape=mu_shape, mu_rate)
+replicatedMean = mu_shape/mu_rate
+replicatedVar = mu_rate/(mu_rate**2)
 
 brownQuantile = qgamma(q, shape=0.7, rate=0.004)
 brownMean = 0.7/0.004
