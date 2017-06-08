@@ -24,7 +24,10 @@
 \newcommand{\sqbox}[1]{\textcolor{#1}{\rule{\sqboxs}{\sqboxs}}}
 
 \newcommand{\blueline}{\raisebox{2pt}{\tikz{\draw[-,blue,solid,line width = 1.5pt](0,0) -- (8mm,0);}}}
+\newcommand{\greyline}{\raisebox{2pt}{\tikz{\draw[-,gray,solid,line width = 1.5pt](0,0) -- (8mm,0);}}}
+\newcommand{\darkgreyline}{\raisebox{2pt}{\tikz{\draw[-,darkgray,solid,line width = 1.5pt](0,0) -- (8mm,0);}}}
 \newcommand{\blackline}{\raisebox{2pt}{\tikz{\draw[-,black,solid,line width = 1.5pt](0,0) -- (8mm,0);}}}
+\newcommand{\blackdashline}{\raisebox{2pt}{\tikz{\draw[-,black,dashed,line width = 1.5pt](0,0) -- (8mm,0);}}}
 
 %%\setlength{\oddsidemargin}{0.25in}
 %%\setlength{\textwidth}{6in}
@@ -52,11 +55,11 @@
 \begin{abstract}
 This paper aims to conduct statistical inference for parameters of an individual level infectious disease model. 
 Individual level models have the capacity to reflect spatial and temporal influences on disease propagation among infected and susceptible individuals.
-A simple individual level model is derived and fit to data collected during an insect infestation of a sugar cane field.
-Model parameters are estimated using the Metropolis sampling algorithm; however, the computational burden created by fitting even a simple model leads to prohibitively long computation times. 
+We derive a simple individual level model fit to data collected during an insect infestation of a sugar cane field and estimate model parameters using the Metropolis sampling algorithm.
+However, the computational burden created by fitting even a simple model leads to prohibitively long computation times. 
 \citet{Brown}, in their article \textit{Statistical inference and computational efficiency for spatial infectious disease models with plantation data}, fit a model to the same data. 
 The authors offer mathematical and computational insights to improve computation time, but errors in the published Metropolis algorithm source code led the authors to inferences and conclusions unsupportable with the data alone. 
-This report offers corrections to these and other errors, offers a more rigorous formulation of the statistical model and priors specified by \citet{Brown}, and assesses convergence issues inherent with high-dimensional parameter spaces. 
+This report offers corrections to these and other errors, develops a more rigorous formulation of the statistical model, and describes the results of an alternative computational approach. 
 \end{abstract}
 
 \section{Introduction}
@@ -65,12 +68,12 @@ Disease propagation modeling is an expansive and active area of mathematical res
 Statistical inference for parameters underlying these models is less mature, but computational advances in recent years make it possible to encode convoluted dependencies and draw inference on the parameters influencing disease propagation. 
 Improving our understanding of these parameters will lead to more effective responses or interventions to disease outbreaks. 
 
-\citet{Brown} set out to conduct statistical inference for a simple class of disease propagation models by estimating the risk that a susceptible individual contracts a disease from an infected member of the population. 
-In these models, the risk of contracting the disease is modeled at the individual level rather than for the population as a whole. 
-The goal is to formulate models that reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration a susceptible individual's exposure to those infected. 
-While this model is conceptually convenient, the computational complexity and limitations of algorithms capable of fitting such a model create significant challenges.
+\citet{Brown} set out to conduct statistical inference for a simple class of disease propagation models by estimating the risk that a susceptible individual might contract a disease from an infected member of the population. 
+In these models, the risk of contracting the disease is evaluated at the individual level rather than for the population as a whole. 
+The goal is to reflect changes in individual risk that correspond to the number of the infected individuals, their proximity to susceptible members of the population, and the duration of a susceptible individual's exposure to those infected. 
+While this model is conceptually convenient, the computational complexity and limitations of algorithms capable of fitting it create significant challenges.
 \citet{Brown} appeal to standard likelihood methods and the Metropolis algorithm \citep{Metropolis} to estimate the parameters of a simple individual level model (ILM) for disease propagation.
-The emphasis on basic components like the Metropolis sampler and simple disease model focuses readers on common challenges inherent with data for statistical inference with infectious disease data. 
+The emphasis on basic components like the Metropolis sampler and simple disease model focuses readers on common challenges for statistical inference with infectious disease data. 
 
 \subsection{Literature Review}
 \label{literature_review}
@@ -78,69 +81,72 @@ The emphasis on basic components like the Metropolis sampler and simple disease 
 This early ILM assumes infected individuals are dispersed evenly throughout the population. 
 It also assumes complete data are available to fit these early models. 
 \citet{Becker} surveys a number of models and the types of data sets these models can accommodate. 
-His work highlights the distinction between studying disease spread from a mathematical perspective as apposed to a statistical inference point of view and summarizes the principle challenges that disease propagation presents to many statistical methods.
+His work highlights the distinction between studying disease spread from a mathematical perspective as opposed to a statistical inference point of view.
+It also summarizes the principal challenges that disease propagation presents to many statistical methods.
 
 \citet{ONeill} build on the idea that one does not have to choose between parameter inference and mathematical insight. 
 In fact, the authors show that a basic Metropolis-Hastings algorithm clears the way for more realistic modeling assumptions and interdependencies. 
 \citet{Jewell} provide an updated perspective and outlines several MCMC design patterns for convoluted models.
-\citet{Brown} primarily contribute another example of these methods along with computational efficiencies beyond an MCMC framework. 
+\citet{Brown} primarily contribute another example of these methods, along with computational efficiencies beyond an MCMC framework. 
 
 While improved computation power made it possible to fit more complex statistical disease models, evaluating likelihood functions that include spatio-temporal components becomes challenging when there are more than a few observations. 
-As the cost to evaluate the likelihood function grows with the number of observations, the utility of MCMC approaches declines.
+As the cost to evaluate the likelihood function grows with the number of observations, the utility of Markov Chain Monte Carlo (MCMC) approaches declines.
 \citet{McKinley} propose Approximately Bayesian Computation (ABC) that avoids calculating the likelihood by generating an approximation to the likelihood function with each pass through an MCMC implementation. 
 \citet{Diggle} forgoes the complexity of full likelihood inference and instead appeals to the partial likelihood function to carry out inference for the parameters of interest. 
 \citet{Deardon} use a Taylor series to approximate infection kernel function to make a Bayesian approach computationally practical. 
-These methods led to reduced computation times compared to a full MCMC implementation, but each either require either completely observed data or are too closely associated with a particular model to be widely applicable.
+These methods led to reduced computation times compared to a full MCMC implementation, but each requires completely observed data or is too closely associated with a particular model to be widely applicable.
 
 \subsection{Statistical Problem}
 Contemplating the complexity of statistical inference for an individual level infectious disease model whose infection rates include spatial and temporal dependencies is daunting.
 However, modeling disease propagation among regularly spaced crops on a farm reduces the challenge. 
 
-This study aims to conduct statistical inference for an ILM fit to an insect infestation of a Guadeloupe sugar cane field over a period of 30 weeks.
+This study aims to conduct statistical inference for an ILM fit to an insect infestation of a Guadeloupe sugar cane field over a period of 30-weeks.
 Figure \ref{fig:data_plot} summarizes the sugar cane data set. 
-The black dots indicate locations of infected plants at the conclusion of the 30 week study period. 
+The black dots indicate locations of infected plants at the conclusion of the 30-week study period. 
 Grey dots indicate the location of plants that were not infected. 
 The plot on the right shows the cumulative number of infected plants after each inspection.
+Blue lines indicate the boundaries of a subsample and the associated inspection counts. 
 
 \begin{figure}[h]
 	\centering
-	\begin{subfigure}[b]{0.49\textwidth}
+	\begin{subfigure}[b]{0.45\textwidth}
 		\includegraphics[width=\textwidth]{figures/figure_1a.png}
 		\caption{}
 		\label{fig:plants_locations}
 	\end{subfigure}
 	\hfill
-	\begin{subfigure}[b]{0.49\textwidth}
+	\begin{subfigure}[b]{0.45\textwidth}
 		\includegraphics[width=\textwidth]{figures/figure_1b.png}
 		\caption{}
 		\label{fig:cum_infection}
 	\end{subfigure}
-	\caption{(\subref{fig:plants_locations}) Plant locations (meters), infection status (\sqbox{plotBlack} infected) after 30 weeks, and sample data used to fit a model (\protect\blueline); (\subref{fig:cum_infection}) number of infected plants at each inspection time for the whole field (\protect\blackline) and the sample data (\protect\blueline).}
+	\caption{(\subref{fig:plants_locations}) Plant locations (meters), infection status (\sqbox{plotBlack} infected) after 30-weeks, and sample data used to fit a model (\protect\blueline); (\subref{fig:cum_infection}) number of infected plants at each inspection time for the whole field (\protect\blackline) and the sample data (\protect\blueline).}
 	\label{fig:data_plot}
 \end{figure} 
 
-When modeling disease propagation among individuals who are either susceptible or already infected, the time of infection and duration of susceptible individuals' exposures to infected members of the population are critical. 
+When modeling disease propagation among individuals who are either susceptible or already infected, the time of infection and duration of the susceptible individuals' exposures to infected members of the population are critical. 
 These data are necessary to infer the rate at which the disease moves from the infected to the susceptible; however, infection times are rarely--if ever--known to any reliable level of precision. 
 Even extremely dangerous or damaging diseases among closely monitored populations such as foot and mouth disease among livestock lack granular infection time data \citep{Diggle, Deardon}. 
 As a result, plausible inference methods must include some means to account for uncertainty in infection times. 
 
-The sugar cane data set includes the infection status of 1,742 plants at six times over a 30 week period. 
+The sugar cane data set includes the infection status of 1,742 plants at six times over a 30-week period. 
 Each observation lists the plant location on a two-dimensional rectangular grid and whether it is infected at week 0, 6, 10, 14, 19, 23, and 30.
 For this data set, it is reasonable to assume that once a plant becomes infected, it remains infected for the duration of the study period. 
 A Susceptible-Infected (SI) model is appropriate for this situation and \citet{Jewell} provide a thorough introduction to this and other disease model frameworks. 
-While an SI model is particularly simple, the model is plausible considering the way that an infestation proceeds for an aphid infestation of plants over 30 weeks time. 
-Starting with a simple model also emphasizes the principle statistical components handled by \citet{Brown}, e.g. unknown infection times. 
+While an SI model is particularly simple, it is plausible considering the way that an infestation proceeds for an aphid infestation. 
+Starting with a simple model also emphasizes the principal statistical components handled by \citet{Brown} (e.g., unknown infection times). 
 
-Intervals in which susceptible plants became infected are recorded, but the data do not include granular infection time data.  
-As a result, there is no way of knowing how long a plant occupied the susceptible and infected stages.
+As Figure (\ref{fig:cum_infection}) suggests, intervals in which susceptible plants became infected are recorded, but the data do not include granular infection time data.  
+Hence, there is no way of knowing how long a plant occupied the susceptible and infected stages.
 This is a common experimental design, and the details of studies that include this \textit{Type I censoring} with \textit{right} and \textit{interval censored} data are discussed at length in survival analysis texts such as \citep{Klein}. 
-While the data collection framework in \citep{Brown} is standard, inference methods for \textit{interval censored} modeling parameters remains more nuanced.
+While the data collection scheme in \citep{Brown} is standard, inference methods for \textit{interval censored} modeling parameters remains more nuanced.
 
 Data augmentation is a common approach to overcoming the problem of unknown infection times. 
-In this case, unknown infection times are treated as latent variables. 
-Including these latent variables makes the likelihood function tractable, but inflating the parameter space complicates the model fitting process. 
+In this case, infection times are treated as latent variables. 
+These latent variables make the likelihood function tractable, but inflating the parameter space complicates the model fitting process. 
 These factors point to a Bayesian approach to approximating the posterior parameter space of the SI model. 
-\citet{Jewell} discuss an augmentation approach in the context of a \textit{Metropolis-in-Gibbs} MCMC framework and the simulation setup described in the next section follows directly from their work. 
+\citet{Jewell} discuss an augmentation approach in the context of a \textit{Metropolis-within-Gibbs} MCMC algorithm. 
+The simulation setup described in the next section follows directly from their work. 
 
 \section{Methods}
 \subsection{Model and Likelihood}
@@ -148,13 +154,13 @@ These factors point to a Bayesian approach to approximating the posterior parame
 Inference for ILM model parameters begins with the likelihood function. 
 Plausible models account for the locations of infected and susceptible plants along with the respective infection times and durations of exposures. 
 However, time intervals in which a susceptible plant becomes infected are the only temporal information in the data. 
-As a result, treat the infection time, $\tau_j$, for plant $j$ as a latent variable. 
-While this approach significantly expands the parameter space, it also leads to a tractable likelihood function. 
+To overcome this challenge, treat the infection time, $\tau_j$, for plant $j$ as a latent variable. 
+This approach significantly expands the parameter space, but it leads to a tractable likelihood function. 
 Note too that the latent variable domains are restricted to the time periods in which each individual's infection status changed. 
 
 The model must also account for the transmission rate differential induced by the physical distance separating infected and susceptible plants. 
 The transmission rate between an infected plant far from a susceptible plant should be smaller than the rate between two plants next to one another.
-As a result, let the function $\theta f(\boldsymbol{x}_i -\boldsymbol{x}_j; \sigma)$ denote the rate of infection for the plant located at $\boldsymbol{\boldsymbol{x}}_i \in \mathbb{R}^2$ at time $t$ after the plant at $\boldsymbol{x}_j \in \mathbb{R}^2$ was infected prior to $t$ with $\boldsymbol{x}_i -\boldsymbol{x}_j$ denoting the distance from plant $i$ to $j$. 
+Let the function $\theta f(\boldsymbol{x}_i -\boldsymbol{x}_j; \sigma)$ denote the rate of infection for the plant located at $\boldsymbol{\boldsymbol{x}}_i \in \mathbb{R}^2$ at time $t$ after the plant at $\boldsymbol{x}_j \in \mathbb{R}^2$ was infected prior to $t$ with $\boldsymbol{x}_i -\boldsymbol{x}_j$ indicating the Euclidean distance from plant $i$ to $j$. 
 After including a term capturing the rate of spontaneous infection, $\mu$, the hazard function at plant $i$ and time $t$ given the infection times for plants $j \in \{1, 2, \dots, 1742\}$ is 
 $$\lambda(\boldsymbol{x}_i,t) = \mu + \sum_{j; \tau_j<t} \theta \, f(\boldsymbol{x}_i - \boldsymbol{x}_j; \sigma).$$
 Now consider the contribution that plant $\boldsymbol{x}_i$ makes to the likelihood if it is infected at time $0<\tau_i<T=30$ weeks. 
@@ -185,29 +191,28 @@ In this case, a radially symmetric bivariate Gaussian density is appropriate.
 \begin{equation} f(\boldsymbol{x}_i-\boldsymbol{x}_j;\sigma) = \frac{1}{2\pi \sigma^2} \exp \left\{-\frac{ ||\boldsymbol{x}_i-\boldsymbol{x}_j||^2}{2\sigma^2} \right\}.
 \label{eq:kernel} \end{equation}
 The Gaussian kernel is physically reasonable since the movement of aphids among plants can be modeled by Brownian Motion. 
-With this argument, $\sigma^2$ in (\ref{eq:kernel}) denotes the variance of the distance an aphid travels in one week. 
+With this argument, $\sigma^2$ in (\ref{eq:kernel}) corresponds to the variance of the distance an aphid travels in one week. 
 
 \subsection{Prior Distributions}
 \citet{Brown} suggests weakly informative priors for the endemic infection rate ($\mu$), the epidemic infection rate ($\theta$), and the standard deviation for distance disease traveled in a week ($\sigma$). 
 These distributions were based on 95\% prior prediction intervals for each parameter. 
-While the authors suggested an approach to specifying the hyperparameters for each variable, the following sections explicitly workout the details for the $\mu$ and $\theta$ prior. 
-Multiple approaches were devised to derive the $\sigma$ prior hyperparameters; however, it was not possible to derive the results for this parameter based on the method published in the paper. 
+The following sections explicitly workout the details for each prior. 
 
 \subsubsection{$\boldsymbol{\mu}$ Prior Predictive Distribution Specification}
 The endemic infection rate influences the number of spontaneous infections over a specified time period. 
 While spontaneously infected plants have the capacity to produce new infections, consider the case where only endemic infections are possible.
-If epidemic infections are not possible, then each of the 583 infections recorded over the 30 week study period could be modeled by a constant endemic infection rate. 
+In this case, each of the 583 infections recorded over the 30-week study period could be modeled by a constant endemic infection rate. 
 Assuming 1 infection at the 2.5\% quantile and 630 at 97.5\%, it is possible to solve for the hyperparameters of $\mu \sim \Gamma(\alpha, \beta)$. 
-Note that while only the first infection is recorded, it is possible for plants to be infected multiple times. 
+It is possible for plants to be infected multiple times, but only the first infection is observed. 
 This suggests the sampling model $k \mid \mu \sim$ Poisson($\mu$) is convenient and appropriate. 
-Therefore, if $\mu \sim \Gamma(\alpha, \beta)$, $P(k=0)=P(k \ge N)=0.025$ implies that
+Therefore, if $\mu \sim \Gamma(\alpha, \beta)$, $P(k=0)=P(k \ge N)=0.025$,
 \begin{align*}
 \alpha &= \frac{\log 0.025}{\log \left( \frac{\beta}{\beta+1} \right)} \\
 0.975 &= \sum_{k=0}^{N-1} \exp \left\{ \log \Gamma(\alpha+k) - \log \Gamma(k+1) - \log \Gamma(\alpha) + \alpha \log \left(\frac{\beta}{\beta +1} \right) + \boldsymbol{x} \log \left(\frac{1}{\beta +1} \right) \right\}
 \end{align*}
 Plugging these equations into a numerical solver with $N=630$ leads to $\alpha=0.6893886$ and $\beta=0.004766281$. 
 These results are consistent with \citet{Brown}'s findings, i.e. $\alpha=0.7$ and $\beta=0.004$. 
-However, these small differences do change the quantiles and variances corresponding to the distribution $\mu_{\text{Brown}} \sim \Gamma(0.7, 0.004)$ and $\mu_{\text{replicated}} \sim \Gamma(0.6893886, 0.004766281)$. 
+However, these small differences do change characteristics of the prior.  
 Table \ref{table:mu_prior_quantile} shows the quantiles, means, and variances for the prior predictive distribution for $\mu$. 
 
 \begin{table}[ht]
@@ -229,51 +234,52 @@ The approach described by the authors also leads to a slightly more informative 
 
 Each of the priors are important to inference, but correctly formulating the prior for $\mu$ is critical. 
 If $\mu$ is too low, then there is no way for an epidemic to emerge within a field of susceptible plants. 
-As a result, misspecification of $\mu$ influences inference for every other aspect of the model. 
+Misspecification of $\mu$ influences inference for every other aspect of the model. 
 Following the derivation for $\mu$ in \citet{Brown} led to parameter values similar to the authors under the rate parameterization of the Gamma distribution. 
 However, \citep{Brown}'s results were sampled from the scale parameterization of the Gamma distribution without adjustment.
-The results reported in \citet{Brown} do not follow from a weakly informative $\Gamma(0.7, \text{rate=}0.004)$ prior, but a highly informative $\Gamma(0.7, \text{scale=}0.004)$ prior. 
-Furthermore, the prior was derived for 30 weeks time, but $\mu$ is modeled in terms of infections per week. 
-Failing to adjust this rate leads to a rate 30 times too large. 
-See the Results section for more information on the the effects of these errors and Appendix \ref{coding_corrections} for a detailed discussion of the evidence for the error. 
+Results reported in \citet{Brown} do not follow from a weakly informative $\Gamma(0.7, \text{rate=}0.004)$ prior, but a highly informative $\Gamma(0.7, \text{scale=}0.004)$ prior. 
+Furthermore, the prior was derived for 30-weeks time, but $\mu$ is modeled in terms of infections per week. 
+Overlooking this point leads to a rate 30 times too large. 
+See the Results section for more information on the the effects of these errors. 
 
 While the derivation of the $\mu$ prior is instructive, the algorithm provides a mechanism to set new priors based on the number of infections observed for other samples. 
-The $\mu$ prior is the only prior in this model that depends on the number of infections observed. 
+The $\mu$ prior is the only parameter in this model that depends on the number of infections observed. 
+Much of the analysis in the results section is based on a sample of the full data set, so specifying this prior correctly is essential. 
 
 \subsubsection{$\boldsymbol{\theta}$ Prior Predictive Distribution Specification}
-\citet{Brown} suggest deriving the $\theta$ prior using the average time to the first infection in a ring of healthy plants encircling an infected plant. 
+\citet{Brown} suggest deriving the $\theta$ prior using the average time to the first infection for a ring of healthy plants encircling an infected plant. 
 Infection time simulations led to $\theta$ hyperparameters consistent with the values published, but minor departures from the published parameters lead to notable differences.
 
-The authors suggest a prior where the average time to infection for a specific plant scenario falls between 1 day at the 2.5\% quantile and 16 months (interpreted as 480 days) at the 97.5\% quantile.
+The authors suggest a prior where the average time to infection for a specific plant configuration falls between 1 day at the 2.5\% quantile and 16 months (interpreted as 480 days) at the 97.5\% quantile.
 Simulating the 95\% mean time to infection started with a grid of $\alpha_{\theta}$, $\beta_{\theta}$ (rate parameterization), and $\sigma$ values. 
 Once the intervals for each parameter were sufficiently narrow, 500 rates (i.e. $\theta$) sampled from each $\Gamma(\alpha_{\theta}, \beta_{\theta, \text{rate}})$ provided enough information to simulate infection times.
 An estimated 95\% interval follows from the proportion of simulation results falling between 1 and 480 days. 
 
-After excluding the influence of the endemic infection rate ($\mu$), $\alpha_{\theta} \in [0.75, 0.95]$ and $\beta_{\theta} \in [0.1, 0.2]$  consistently led to average infection times between 1 and 480 days 95\% of the time.  
+Excluding the influence of the endemic infection rate ($\mu$), $\alpha_{\theta} \in [0.75, 0.95]$ and $\beta_{\theta} \in [0.1, 0.2]$  consistently led to average infection times between 1 and 480 days 95\% of the time.  
 However, increasing the sample size (e.g. from 500 to 1,000) led to fewer instances where the average time to the next infection covered the interval. 
 Furthermore, $\sigma$ tended to fall near the top of the range (4-5 meters) for parameter values associated with the appropriate coverage. 
-Considering that the largest distance between any two plants in the set is less than 5 meters, values of $\sigma$ near the top of a physically meaningful range suggested an additional condition to arriving at the $\theta$ prior: the influence of the spatial component should also be excluded. 
+Considering that the largest distance between any two plants in the nine plant set is less than 5 meters, values of $\sigma$ near the top of a physically meaningful range suggested an additional condition to arriving at the $\theta$ prior: the influence of the spatial component should also be excluded. 
 This makes sense in the context of the derivation. 
 
 In summary, many priors satisfied the specification criteria used by the authors. 
 Running the simulations over larger rate samples led to difficulties covering the 95\% prior predictive quantiles.
-While $\theta \sim \Gamma(0.8, \text{rate}=0.1)$ led to reasonable coverage results with small sample sizes, the parameters seemed less compelling under simulations with larger samples.
+Sampling $\theta \sim \Gamma(0.8, \text{rate}=0.1)$ led to reasonable coverage results with small sample sizes, but the parameters seemed less compelling under simulations with larger sample sizes.
 Parameterizing $\theta \sim \Gamma(0.95, \text{rate}=0.145)$ led to more consistent coverage results and ultimately became the prior used in the Metropolis algorithm. 
 
 \subsubsection{$\boldsymbol{\sigma}$ Prior Predictive Distribution Specification}
 Parameter $\sigma^2$ denotes the variance of the distance an aphid travels in a week.
 Considering that the distance traveled is modeled as Brownian motion with a zero mean bivariate normal kernel, a 95\% confidence interval for the distance traveled after one week corresponds to an aphid traveling $2\sigma$ at the 97.5\% quantile. 
 With this understanding, $\sigma \sim \Gamma(0.5, \text{scale}=100)$ implies that an aphid travels between $2\sigma_{0.025} \approx 0.1$ meters at the 2.5\% quantile and $2\sigma_{0.975} \approx 500$ meters at the 97.5\% quantile of the prior distribution. 
-While this prior does have large variance and therefore leads to a weakly informative prior for $\sigma$, the most distant points in the field under consideration are separated by approximately 56 meters. 
+While this prior does have large variance and therefore leads to a weakly informative prior for $\sigma$, plants in the field under consideration are separated by 56 meters or less. 
 A prior with $\sigma \sim \Gamma(0.73, \text{scale}=9)$ would be more physically appropriate. 
 Under this prior, $2\sigma_{0.025} \approx 0.1$ meters and $2\sigma_{0.975} \approx 56$ meters. 
 
 \subsection{Inference}
 \label{inference}
 While adding latent variables denoting infection times made it possible to compute the likelihood as a function of $\mu$, $\sigma$, and $\theta$, it significantly complicates the process to fitting a model. 
-The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the unknown infection times in the full data set (583 times in the full data set). 
+The likelihood for the plantation data set includes the three model parameters of interest plus a latent variable for each of the unknown infection times (583 times in the full data set). 
 Metropolis algorithms are well-suited for such parameterizations as several of the results reviewed in section \ref{literature_review} suggest.  
-In particular, the Metropolis-within-Gibbs implementation with a \textit{non-centering parameterization} used to fit a model to the plantation data is a special case of the algorithm described by \citet{Jewell} and briefly discussed in \citep{ONeill}.  
+In particular, the Metropolis-within-Gibbs implementation with a \textit{non-centering parameterization} described here is a special case of the algorithm discussed by \citet{Jewell} and briefly discussed in \citep{ONeill}.  
 
 The algorithm relies on the priors, the likelihood formula, and the data. 
 In this case, the data, $\textbf{Y} = \{Y_i:i=1,\dots, m \le N\}$, are the intervals in which each infected plant's status changed from healthy to infected with $m$ denoting the number of intervals in the data and $N$ the total number of infected individuals at the end of the study period. 
@@ -297,63 +303,42 @@ $$\min \left\{1, \frac{L( \tau^{(r)}_1, \dots, \tau^{(r)}_{i-1}, \tau^{\star}_i,
 The algorithm implementation for this model uses normally distributed proposals with means at the previous $\theta$, $\sigma$, $\mu$, and $\tau_i$ values. 
 The concentration parameters used for the proposal distributions were $ \nu_{\mu}=0.003^2$,  $ \nu_{\sigma}=0.9^2$, $\nu_{\theta}=0.05^2$, and $ \nu_{\tau_i}=1$. 
 These values were selected based on trace plots from the parameter samples, target acceptance ratio for each parameter (20-50\% objective), autocorrelation plots, and convergence diagnostic statistics, including the Geweke diagnostic. 
-The actual acceptance rates were 27\% for $\mu$, 30\% for $\sigma$, and 29\% for $\theta$. 
 
 \subsection{Implementation}
-\textbf{[Circle back to this.]}
-
-The full data set includes 583 unknown infection times recorded in one of 6 intervals over 30 weeks time. 
-As a result, some portion of the likelihood function has to be computed 586 times for each sweep through the sampler. 
+The full data set includes 583 unknown infection times recorded in one of 6 intervals over 30-weeks time. 
+Therefore some portion of the likelihood function must be computed 586 times for each sweep through the sampler. 
 Implementing the algorithm naively leads to prohibitively long computation times. 
-The following sections review the steps taken to improve and benchmark computational performance enough to make the non-centering parameterization method viable for data with convoluted interdependencies. 
-The basic algorithm was prototyped in R and then translated to the Julia numerical computing programming language. 
-Portions of the Julia implementation were then parallelized to improve the computational performance. 
+Basic measures improve and computational performance enough to make the non-centering parameterization method viable for data with convoluted interdependencies; however, the complexity of the interactions in the model necessitates careful and incremental development.
 
-\subsubsection{Basic Algorithm}
-The basic implementation primarily executes the pseudo-code from the previous section with three exceptions.
+The basic algorithm was first prototyped and tested in R. 
+After each function passed unit tests, the codes were translated to the Julia numerical computing programming language. 
+Development adhered to standard software engineering best practices \citep{Martin}.
+A \textit{test driven development} philosophy led to simple, modular functions that work together to compute convoluted likelihood expressions. 
+The resulting implementations primarily execute the pseudo-code from the previous section with three exceptions.
 First, the distance matrix among the plants in the data set is pre-computed. 
 The other exception concerns the $\tau^{(r)}$ update routine. 
 Many of the terms in the likelihood ratio are identical. 
 Recognizing this point eliminates the need to compute several terms in the likelihood function. 
- 
-\subsubsection{Parallel Algorithm}
-The parallel implementation distributes the computational burden in two ways. 
-Both focus on computing updating $\boldsymbol{\tau}$. 
-First, the subroutines of the likelihood ratio that cannot run asynchronously--but still require significant computational resources--are broken into pieces and computed in parallel. 
-The other parallelization improvement results from recognizing that some updates are not possible given order that infections were known to have occurred. 
-As a result, proposals that would reverse this known ordering are rejected immediately. 
+
+\citet{Brown} also explored additional optimizations, including parallelization, to speed performance. 
+The authors aimed to develop an implementation capable of executing simulations on a laptop or desktop. 
+Statistical inference was the primary emphasis of this report, so a sample of the full data set was used to fit the SI model. 
+Computing executed on Amazon's C4 Compute Optimized instances with Intel Xeon E5-2666 v3 (Haswell) processors and 750 Mbps bandwidth running the AMI Linux operating system and Julia version 0.5.3.
 
 \section{Results}
-\citet{Brown} pursued several computational tools to fit a model to the full data set. 
-Computation times in early prototypes improved with each suggestion implemented, but time to complete prototyping runs was still prohibitively long with the full data set. 
-Taking a 10\% sample of the full data set substantially reduced prototyping times; it also led to the discovery of bugs in \citep{Brown}'s implementations.
+\citet{Brown} pursued several computational techniques to fit a model to the full data set. 
+Computation times in our early implementations improved with each suggestion implemented, but time to complete testing and debugging remained prohibitively long with the full data set. 
+Sampling the full data set substantially reduced development and testing times; it also led to the discovery of bugs in \citep{Brown}'s implementations.
 
-Figure \ref{fig:muSigmaThetaDensities} shows the results of 75,000 iterations through 416 plants sampled from the 1,742 plantation data set. 
-The first 30,000 iterations were discarded as burn-in trials based on inspection of the parameter trace plots and Geweke's diagnostic. 
+Figure \ref{fig:muSigmaThetaDensities} shows the results of 75,000 iterations through 416-plants sampled from the 1,742 plantation data set. 
+Proposal acceptance rates were 27\% for $\mu$, 30\% for $\sigma$, and 29\% for $\theta$. 
+The first 30,000 iterations were discarded as burn-in trials based on inspection of the parameter trace plots and Geweke's diagnostic \citep{Geweke}. 
 Geweke's diangostic for the first 10\% and last half of the chains did not indicate a lack of convergence for any parameter ($z_{\mu} = 0.5588$, $z_{\sigma} = 0.1140$,  $z_{\theta} = 0.1768$). 
-However, Figures \ref{fig:mu_density} and \ref{fig:sigmaTheta} along with the cumulative probability plot in Appendix (\ref{metropolis_plots}) raise concerns about convergence for $\sigma$.
-The 45,000 samples remaining were thinned to obtain a 5,000 observation sample based on the autocorrelation function charts and statistics. 
+However, Figures \ref{fig:mu_density} and \ref{fig:sigmaTheta} along with the cumulative probability plot in Appendix \ref{metropolis_plots} raise concerns about convergence for $\sigma$.
+The 45,000 samples remaining were thinned to obtain a 5,000-observation sample based on the autocorrelation function charts and statistics. 
 This post-processed sample is what is shown in Figure \ref{fig:muSigmaThetaDensities}. 
 
-Comparing Figure \ref{fig:mu_density} to the same result reported in \citep{Brown} suggests some discrepancies in the results. 
-Wider confidence intervals for the parameter samples should be expected since the results here arise from a 25\% sample while \cite{Brown}'s results were derived for all available data, but the differences are remarkable. 
-The medians of each parameter seem well-aligned to the authors' findings; however, reducing the sample size from 25\% to 10\% leads to substantially different results for $\mu$. 
-This was concerning initially, but, upon further review, the discrepancy from the authors findings was a good sign. 
-
-The prior for $\mu$ was derived under the rate parameterization. 
-However, the published source code indicates that the $\mu$ prior was coded with scale parameterization without adjusting the parameters.
-As a result, the error leads to a highly informative prior and the figure presented in the original paper suggests that the data may have been heavily influenced by this prior. 
-In this case, the prior should have pulled the posterior parameter distribution lower than what would be expected from a weak or noninformative prior. 
-This last point is critical. 
-
-If a highly informative prior was used, then the density plot in \citet{Brown}'s Figure 2a should reflect this fact. 
-The figure does not indicate a highly informative prior, but suggests instead that a weak prior was used as described. 
-Reviewing the codes for the figures published revealed a second bug. 
-The  $\mu$ prior density plot published was produced by a third distribution, $\Gamma(0.7, 0.7)$. 
-The results in Figure (\ref{fig:theta_density}) and (\ref{fig:sigma_density}) are consistent with the the authors' findings, but as with the distribution of $\mu$, the 95\% confidence intervals are wider than what the original paper due, in part, to sampling the full data set. 
-Both the original paper and the results reported here suggests that $\sigma$ is skewed or shows signs of convergence problems.
-
-\begin{figure}[H]
+\begin{figure}[t!]
 	\centering
 	\begin{subfigure}[b]{0.3\textwidth}
 		\includegraphics[width=\textwidth]{figures/figure_2a.png}
@@ -390,29 +375,34 @@ Both the original paper and the results reported here suggests that $\sigma$ is 
 		\caption{}
 		\label{fig:sigmaTheta}
 	\end{subfigure} 
-	\caption{(\subref{fig:mu_density}) - (\subref{fig:sigma_density}) show the parameter posterior densities;  (\subref{fig:muSigma}) - (\subref{fig:sigmaTheta}) shows pairwise posterior pairwise scatter plots }
+	\caption{(\subref{fig:mu_density}) - (\subref{fig:sigma_density}) show the parameter prior and posterior densities and the 2.5\%, 50\%, and 97.5\% quantiles;  (\subref{fig:muSigma}) - (\subref{fig:sigmaTheta}) show pairwise posterior pairwise scatter plots along with the 50\% (\protect\greyline), 80\% (\protect\darkgreyline), and 95\% (\protect\blackline) point-wise confidence intervals}
 	\label{fig:muSigmaThetaDensities}
 \end{figure} 
 
+Comparing Figure \ref{fig:mu_density} to the same result reported in \citep{Brown} suggests some discrepancies in the results. 
+Wider confidence intervals for the parameter samples should be expected since the results here arise from a 25\% sample, while \cite{Brown}'s results were derived for all available data, but the differences are remarkable. 
+The medians of each parameter seem well-aligned to the authors' findings; however, reducing the sample size from 25\% to 10\% leads to substantially different results for $\mu$. 
+This was concerning initially, but, upon further review, the discrepancy from the authors' findings was a good sign. 
+
+The prior for $\mu$ was derived under the rate parameterization. 
+However, the published source code indicates that the $\mu$ prior was coded with scale parameterization without adjusting the parameters.
+As a result, the error leads to a highly informative prior that restricts the posterior parameter distribution to a an unintentionally narrow range.
+
+If a highly informative prior was used, then the density plot in \citet{Brown}'s Figure (2a) should reflect this fact, but it suggests instead that a weak prior was used as described. 
+Reviewing the codes for the figures published revealed a second bug. 
+The  $\mu$ prior density plot published was produced by a third distribution, $\Gamma(0.7, 0.7)$. 
+The results in Figures (\ref{fig:theta_density}) and (\ref{fig:sigma_density}) are consistent with the the authors' findings, but as with the distribution of $\mu$, the 95\% confidence intervals are wider than those of the original paper due, in part, to sampling the full data set. 
+Both the original paper and the results reported here suggests that $\sigma$ is skewed or shows signs of convergence problems.
+Figure (\ref{fig:sigma_density}) offers the clearest indication that the posterior distribution of $\sigma$ is right skewed. 
+
 Figures (\ref{fig:muSigma}) - (\ref{fig:sigmaTheta}) show pairwise scatter plots of the parameters. 
-The relationship between $\mu$ and $\sigma$ shown in Figure (\ref{fig:muSigma}) suggests that the spatial influence tends to diminish as the the endemic infection rate falls. 
-This offers some indication that the spatial parameter must be relaxed in order for the model to account for new infections far from an infected plant. 
+The concentric rings indicate the 50\%, 80\%, and 95\% point-wise confidence bands for each pair.
+The relationship between $\mu$ and $\sigma$ shown in Figure (\ref{fig:muSigma}) suggests that the spatial influence tends to diminish as the endemic infection rate falls. 
+This indicates that the spatial parameter must be relaxed in order for the model to account for new infections far from an infected plant. 
 Figure (\ref{fig:muTheta}) offers fewer insights into the parameter relationship between $\theta$ and $\mu$, but we can see a slight indication of an inverse relationship between $\mu$ and $\theta$. 
-Figure (\ref{fig:sigmaTheta}) offers one of the clearest indications that the posterior distribution of $\sigma$ is right skewed. 
-The concentric rings indicate the 50\%, 80\%, and 95\% point-wise confidence bands for each pair. 
+Figure (\ref{fig:sigmaTheta}) also suggests that $\sigma$ is skewed considering the separation of the quantile contours as the value of sigma increases. 
 
-Figure (\ref{fig:time_plots}) shows the distribution of infection times for plants in the interval of the first infection(s)  (\ref{fig:first_infections}) and the interval of the last infections (\ref{fig:last_infections}). 
-The distribution of unobserved infection times during the first period shown in (\ref{fig:first_infections}) suggests that density of infection times increases slightly with passing time. 
-This slopes of the lines here are less than the results reported by \citet{Brown} for two reasons. 
-First, the results in figure (\ref{fig:time_plots}) correspond to normalized densities. 
-Furthermore, the endemic rate of infection ($\mu$) is the only parameter that influences initial infections. 
-As a result, different values of $\mu$ lead to different results in the two figures. 
-Figure (\ref{fig:last_infections}) is more consistent with the results reported in \citet{Brown} since all three model parameters contribute to infections late in the study period. 
-The dashed lines indicate the density of infection times of plants away from infected plants. 
-Black lines show the infection density of plants near plants infected at the start of the interval. 
-The results indicate that plants nearer to infected plants tend to become infected sooner than those farther away. 
-
-\begin{figure}[H]
+\begin{figure}[t!]
 	\centering
 	\begin{subfigure}[b]{0.49\textwidth}
 		\includegraphics[width=\textwidth]{figures/figure_3a.png}
@@ -425,22 +415,31 @@ The results indicate that plants nearer to infected plants tend to become infect
 		\caption{}
 		\label{fig:last_infections}
 	\end{subfigure}
-	\caption{(\subref{fig:first_infections}) tbd; (\subref{fig:last_infections}) tbd }
+	\caption{Posterior densities of infection times for plants infected during (\subref{fig:first_infections}) the first interval and (\subref{fig:last_infections}) the last interval. Susceptible plants closer to infected plants tend to become infected earlier (\protect\blackline) than plants farther away form infected plants (\protect\blackdashline). Each line denotes the density of infection times for a single plant during the specified time interval.}
 	\label{fig:time_plots}
 \end{figure} 
 
-Figure \ref{fig:sim_epidemic} shows simulated epidemics that correspond to the 416 plant sample enclosed in the blue box in Figure (\ref{fig:data_plot}). 
-The plot reflects the number of infections per week conditioned on the infection intervals recorded (\ref{fig:cond_infections}) and infection times without reference to intervals of infection. 
-Grey lines indicate sample paths, black dashed lines show the 2.5\% and 97.5\% pointwise confidence bounds, and the solid black line corresponds to the median infection count per week. 
-These plots are based on a 25\% sample of the data and as a result lead to less informative interpretation than a larger or the full data set. 
-The figures do, however, indicate that the posterior parameters sampled lead to more infections earlier than what was observed in the sample data. 
-The unconditional simulation also failed to appreciably account for the discontinuity around week 23. 
-On the other hand, the 97.5\% upper bound for the simulated unconditional simulations contain the bounds tor the conditional simulations. 
-The bounds also widen as time progresses. 
-These results suggest that the model has some capacity to reflect the dynamics of an outbreak, but the applicability of the model to new outbreaks is limited.
-This is consistent with \citet{Brown}'s findings with the full data set and correcting the bug on the $\mu$ prior was not enough to change the inference for the first few weeks of a new outbreak. 
+Figure (\ref{fig:time_plots}) shows the distribution of infection times for plants in the interval of the first infection(s)  (\ref{fig:first_infections}) and the interval of the last infections (\ref{fig:last_infections}). 
+These figures depart from the results reported in \citet{Brown} for two reasons. 
+First, the results in figure (\ref{fig:time_plots}) were normalized to properly reflect curves for densities (i.e., sum to one). 
+Furthermore, the endemic rate of infection ($\mu$) is the only parameter that influences initial infections. 
+As a result, different values of $\mu$ lead to different results in the two figures. 
+Figure (\ref{fig:last_infections}) is more consistent with the results reported in \citet{Brown} since all three model parameters contribute to infections late in the study period. 
+The dashed lines indicate the density of infection times of plants away from infected plants. 
+Black lines show the infection density of plants near plants that were infected at the start of the interval. 
+The results indicate that plants nearer to infected plants tend to become infected sooner than those farther away. 
 
-\begin{figure}[H]
+Figure (\ref{fig:sim_epidemic}) shows simulated epidemics that correspond to the 416-plant sample enclosed in the blue box in Figure (\ref{fig:data_plot}). 
+The plot reflects the number of infections per week conditioned on the infection intervals recorded (\ref{fig:cond_infections}) and infection times, without reference to intervals of infection (\ref{fig:sim_infection}). 
+Grey lines indicate sample paths, black dashed lines show the 2.5\% and 97.5\% pointwise confidence bounds, and the solid black line corresponds to the mean infection count per week. 
+While these figures were based on a 25\% sample, they support \citep{Brown}'s conclusions about the model.
+Parameters sampled from the unconditional posterior indicate a faster start for a new outbreak than that suggested by the posterior parameters conditioned on the time intervals.
+The unconditional simulation also failed to appreciably account for the discontinuity around week 23. 
+On the other hand, the 95\% confidence interval of the unconditional simulations contain the bounds tor the conditional simulations. 
+These results suggest that the model has some capacity to reflect the dynamics of an outbreak, but the applicability of the model to new outbreaks is limited.
+This is consistent with \citet{Brown}'s findings with the full data set, and correcting the bugs on the $\mu$ prior was not enough to reverse the inference for the first few weeks of a new outbreak based on Figures (\ref{fig:cond_infections}) and (\ref{fig:sim_infection}) alone. 
+
+\begin{figure}[t!]
 	\centering
 	\begin{subfigure}[b]{0.49\textwidth}
 		\includegraphics[width=\textwidth]{figures/figure_4a.png}
@@ -453,24 +452,32 @@ This is consistent with \citet{Brown}'s findings with the full data set and corr
 		\caption{}
 		\label{fig:sim_infection}
 	\end{subfigure}
-	\caption{(\subref{fig:cond_infections}) tbd; (\subref{fig:sim_infection}) tbd \vmcomment{Don't forget to add informative, self-contained captions everywhere}}
+	\qquad
+	\begin{subfigure}[b]{0.49\textwidth}
+		\includegraphics[width=\textwidth]{figures/figure_4c.png}
+		\caption{}
+		\label{fig:cum_cond_infections}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.49\textwidth}
+		\includegraphics[width=\textwidth]{figures/figure_4d.png}
+		\caption{}
+		\label{fig:cum_sim_infection}
+	\end{subfigure}
+	\caption{Number of new infections per week (\subref{fig:cond_infections}) conditioned on the interval-censored infection times and (\subref{fig:sim_infection}) number of new infections per week simulated from unconditional posterior of $\mu$, $\sigma$, and $\theta$. Cumulative number of infections (\subref{fig:cum_cond_infections}) conditioned on the interval-censored infection times and (\subref{fig:cum_sim_infection}) simulated from unconditional posterior. Plot lines indicate simulated trajectories (\protect\greyline), sample means (\protect\blackline), and 95\% confidence intervals (\protect\blackdashline) based on the data sampled. }
 	\label{fig:sim_epidemic}
 \end{figure} 
 
+Figures (\ref{fig:cum_cond_infections}) and (\ref{fig:cum_sim_infection}) show the cumulative number of infections for the conditional and unconditional posteriors after applying a transformation. 
+Raising the cumulative infected counts to $\log(30)/\log(N)$ (where $N$ denotes the number of infected individuals at the end of 30 weeks). 
+\citet{Brown} suggest this transformation to assess the infection rate's similarity to exponential growth, represented by $y=0$. 
+The 95\% confidence intervals collapse at each inspection time for the conditional posterior since the total number of infections are known at those points. 
+The unconditional simulation shows more variability; however, simulations based on the unconditional posterior associated with the appropriately specified priors lead to results more consistent with the conditional distribution than what \citet{Brown} found. 
+
 Figure (\ref{fig:full_field_sim}) repeats the unconditional simulations with all plants using the parameters sampled from the Metropolis algorithm with the sample data. 
 Figure (\ref{fig:all_infections}) shows the raw output of the simulation. 
-Figure (\ref{fig:root_all_infections}) shows the same results, but plots the square root of the paths instead of the raw counts that result from the simulations. 
-Figure 5 in \citet{Brown} uses this transformation. 
-Again, the error bounds are wider for the posterior parameters sampled from the 10\% subset of the plantation data, but the conclusions are effectively the same with some notable exceptions. 
-
-The simulations generated form the sample data led to much more variation in the simulated outbreaks. 
-This result follows from the wider confidence intervals associated with the sampled data; however, it is not clear how much of this additional variation can be explained by sampling the data versus correctly parameterizing the prior $\mu$ prior. 
-The concavity of the weekly infection counts around week 23 is also remarkable. 
-While the weekly infection counts appear higher than \citet{Brown}'s findings, the declining rate of infection seen here implies that the number of new infections per week begins to decline as the fewer and fewer plants remain susceptible. 
-This observation is encouraging for the fidelity of the simple SI model as it suggests that the number of new infections per week begins to decline as the field becomes fully infested. 
-However, this result seems to be a byproduct of a more aggressive infestation instead a departure from previous findings. 
-
-\begin{figure}[H]
+Figure (\ref{fig:root_all_infections}) shows the square root of the paths as in \citet{Brown} instead of the raw counts that result from the simulations.  
+\begin{figure}[!b]
 	\centering
 	\begin{subfigure}[b]{0.49\textwidth}
 		\includegraphics[width=\textwidth]{figures/figure_4b_all_plants.png}
@@ -483,22 +490,18 @@ However, this result seems to be a byproduct of a more aggressive infestation in
 		\caption{}
 		\label{fig:root_all_infections}
 	\end{subfigure}
-	\caption{(\subref{fig:all_infections}) tbd; (\subref{fig:root_all_infections}) tbd }
+	\caption{Number of new infections per week simulated for the full data set with unconditional posterior parameters sampled (\subref{fig:all_infections}) without transformation (\subref{fig:root_all_infections}) square root transformation. Plot lines indicate simulated trajectories (\protect\greyline), sample means (\protect\blackline), and 95\% confidence intervals (\protect\blackdashline) based on the full data set. }
 	\label{fig:full_field_sim}
 \end{figure} 
+The concavity of the weekly infection counts around week 23 is also remarkable. 
+While the weekly infection counts appear higher than \citet{Brown}'s findings, the declining rate of infection seen here implies that the number of new infections per week begins to decline as fewer and fewer plants remain susceptible. 
+This observation is encouraging for the fidelity of the simple SI model as it suggests that the number of new infections per week begins to decline as the field becomes fully infested. 
+However, this result could be the byproduct of a more aggressive infestation (as suggested by the results in Figure (\ref{fig:cum_sim_infection})) instead of a departure from previous findings. 
 
-Figure (\ref{fig:prediction}) offers another perspective on the results of the sampler. 
-Each panel shows the predicted infection probabilities for each plant starting from the infection status of plants starting with the infections recorded at week 30. 
-Infection probabilities were predicted for weeks 35, 40, 50, and 60. 
-The results show that new infections tend to occur near infected plants as expected, but most of the field is infected by the end of week 60. 
-This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there were coded so that the first infection time after week 30 arises from the endemic rate instead of the combined influences of the endemic rate and all previously infected plants.
-This oversight leads to artificially low predicted infection probabilities for weeks 35 and 40. 
-It also slows the spread of the epidemic so that many more plants remain susceptible at the end of 60 weeks.
-Considering that the authors' simulations suggested approximately 40 new infections per week under the model parameters sampled, having most of the plants remain healthy after 10 weeks time proves the claim. 
-With this rate of infection, one should expect the simulations to suggest around 400 new infections by week 40 in addition to the 583 infections known to exist in week 30. 
-That is, the probabilities should not remain mostly unchanged for uninfected plants at the end of 10 weeks if the sampler functioned properly. 
+Overall, simulations generated form the sample data led to much more variation in the simulated outbreaks. 
+This result follows from the wider confidence intervals associated with the sampled data; however, without running the sampler over the full data set, it is not clear how much of this additional variation can be explained by sampling the data versus correctly parameterizing the $\mu$ prior. 
 
-\begin{figure}[H]
+\begin{figure}[!b]
 	\centering
 	\begin{subfigure}[b]{0.24\textwidth}
 		\includegraphics[width=\textwidth]{figures/figure_5a.png}
@@ -523,32 +526,59 @@ That is, the probabilities should not remain mostly unchanged for uninfected pla
 		\caption{}
 		\label{fig:week_60}
 	\end{subfigure}
-	\caption{(\subref{fig:week_35}) tbd; (\subref{fig:week_60}) tbd }
+	\caption{Forecast of infection probabilities at (\subref{fig:week_35}) week 35,  (\subref{fig:week_40}) week 40, (\subref{fig:week_50}) week 50, and (\subref{fig:week_60}) week 60 where \sqbox{grey80} indicates 20-79\% change of infection, \sqbox{grey60} 80-99\% change of infection, \sqbox{plotBlack} is a known infection, and no shading indicates a healthy plant. 
+}
 	\label{fig:prediction}
 \end{figure} 
 
-In addition to inference for ILMs, improved computing times were a central result reported by the authors.
-However, coding the basic MCMC algorithm as suggested in \citet{Brown} led to run times many orders of magnitude slower than the times reported. 
-Comparatively slow execution times were expected for R prototypes, but Julia benchmarks against the C programming language indicate that the performance difference cannot be fully explained by the choice of programming language. 
-Each method was coded according to standard software engineering best practices, including modular programming and test-driven development approach.  
-Neither the basic implementation or a prototype parallel implementation were able to match the speeds reported. 
+Figure (\ref{fig:prediction}) offers another perspective on the results of the sampler. 
+Each panel shows the predicted infection probabilities for each plant starting from the infection status of plants, with the infections recorded at week 30. 
+Infection probabilities were predicted for weeks 35, 40, 50, and 60. 
+The results show that new infections tend to occur near infected plants as expected and that most of the field is infected by the end of week 60. 
+This follows the basic conclusion in \citet{Brown}, but the predicted infection probabilities reported there were coded so that the first infection time after week 30 arises from the endemic rate--instead of the combined influences of the endemic rate and all previously infected plants.
+This oversight leads to artificially low predicted infection probabilities for weeks 35 and 40. 
+It also slows the spread of the epidemic so that many more plants remain susceptible at the end of 60 weeks.
+Considering that the authors' simulations led to approximately 40 new infections per week under the model parameters sampled, having most of the plants remain healthy after 10 weeks time proves the claim. 
+With the rate of infection reported in \citep{Brown}'s analogue to Figure (\ref{fig:full_field_sim}), one should expect the simulations to suggest around 400 new infections by week 40 in addition to the 583 infections known to exist in week 30. 
+That is, the probabilities should not remain mostly unchanged for uninfected plants at the end of 10 weeks if the sampler functioned properly. 
 
 \section{Discussion}
-While \citet{Brown} presents several variations of the basic and parallel Metropolis algorithms that improve performance, the authors ultimately determined that the statistical model specified was incapable of capturing the underlying complexities of the plantation data. 
-After deriving the parameters for the prior on $\mu$ and simulating epidemics from a subsample of the data, it became clear that the findings reported in \citet{Brown} were based on a flawed implementations. 
-Coding errors in the Metropolis sampler were replicated across all implementations and ultimately led to results that may not follow from the data.
+In addition to statistical inference, \citet{Brown} capitalizes on contextual insights into the ILM model to speed computation time.  
+We started with a basic implementation of the Metropolis algorithm built with only the most obvious efficiencies, e.g., pre-computed distance matrix, as the authors suggest, and planned to incrementally improve our implementation with the authors suggestions.
+However, retrofitting existing implementations required almost completely new parallelized versions of the original functions. 
+%The complexity of the dependencies in even this simple model requires careful coding. 
+We took a different approach. 
 
-Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.004)$ with mean 175 and variance $\frac{0.7}{0.004^2}=43,750$, \citep{Brown} specified $\mu \sim \Gamma(0.7, \text{scale}=0.004)$ with mean 0.0028 and variance $1.12\times10^{-5}$. 
+We sampled the full data set and executed computations on an Amazon \textit{compute optimized} instance. 
+Standardizing input and output files as well as automating analysis scripts made it easy and efficient to execute test runs and calibrate the Metropolis sampler. 
+Once tuned and noting the memory requirements for large results matrices generated by each chain,
+the algorithm was started for every core on the instance. 
+This approach negated the need to recode existing routines, but there are drawbacks. 
 
-The primary objective of this work was statistical inference for an ILM model that accounts for spatial and temporal influences in the underlying generative process. 
-The Metropolis algorithm was selected to fit this model, but computing times for the full data set using a traditional implementation led to prohibitively long computation times. 
-\citet{Brown} pursued several computational tools to fit a model to the full data set. 
-Following that path prematurely, however, became an exercise in computer science. 
-Computation times  in early prototypes improved with each suggestion implemented, but discrepancies in posterior parameter samples emerging from trial runs with the full data set led to increasingly complex unit testing and debugging schemes. 
-While computing times improved, time to complete prototyping runs was still prohibitively long and trends in the parameter samples were inconsistent with results reported in \citet{Brown}. 
-As a result, focus shifted from computation times to identification of discrepancies in the algorithm results. 
-Taking a 10\% sample of the full data set substantially reduced prototyping times; it also led to the discovery of bugs in \citet{Brown}'s implementations.
-\vmcomment{Shorten the above discussion of computing time and subsampling to a couple of sentences. You are too apologetic right now.}
+Sampling the data makes prior specification much more important to inference. 
+The priors \citet{Brown} propose for the sugar cane plantation data led to much different results with subsamples of the data than what was published. 
+These results arose from errors in the specification of the endemic infection rate prior. 
+Considering this parameter's influence on the model and resulting inference, failing to correct errors in the prior specification leads to substantially different results than those suggested by the full data set. 
+Subsampling increases inference's exposure to problematic priors since there is less data to overcome the influence of the prior. 
+
+These costs should not be considered in a vacuum, however. 
+Our basic implementation completed 200,000 iterations in about 48 hours using a 25\% subsample and Amazon's optimized computing instance. 
+According to the computing times \citet{Brown} reports, their basic implementation would need approximately 130 hours to complete a similar number of iterations over the full data set (approximately 51 hours for the parallelized version). 
+One should weigh the level of precession and speed needed for the problem at hand. 
+\citet{Jewell} discuss problems where inference is critical to quelling a growing epidemic. 
+In those cases, computational speed is a great asset. 
+However, when running time is not a critical concern, streamlining an iterative testing and development process may lead to inference sooner than recoding delicate algorithms. 
+
+Methods assessing the reliability of an implementation are also important.
+We used a standard (unit) test-driven development approach to build our implementation. 
+%While careful unit testing offers an efficient means to locate and resolve bugs, it can be too burdensome for the analysis at hand. 
+One of the last codes we wrote should have been the very first: the epidemic simulation. 
+The ability to simulate outbreaks under known parameters and then fit a model to the results would have offered a powerful tool to ensuring that our implementation functioned as expected. 
+Initial testing confirmed that our Metropolis implementation successfully recovered the parameters that generated the data. 
+
+This report reviewed a careful derivation of a simple ILM likelihood, associated priors, and described a different approach to computation. 
+While we focused our efforts on methods to reduce the time required to evaluate the likelihood, additional efficiencies could be realized by cutting the number of iterations required by the Metropolis algorithm. 
+\citet{Roberts} investigation of adaptive MCMC suggests one such lead. 
 
 \newpage
 \bibliography{prelim_references}
@@ -577,7 +607,7 @@ Taking a 10\% sample of the full data set substantially reduced prototyping time
 		\caption{}
 		\label{fig:acf_mu}
 	\end{subfigure}
-	\caption{(\subref{fig:chain_mu}) tbd; (\subref{fig:quant_mu}) tbd; (\subref{fig:acf_mu}) tbd }
+	\caption{(\subref{fig:chain_mu}) $\mu$ MCMC trace plot after burn-in; (\subref{fig:quant_mu}) $\mu$ sample quantile plot; (\subref{fig:acf_mu}) $\mu$ autocorrelation function plot }
 	\label{fig:diagnostics_mu}
 \end{figure} 
 
@@ -600,7 +630,7 @@ Taking a 10\% sample of the full data set substantially reduced prototyping time
 		\caption{}
 		\label{fig:acf_sigma}
 	\end{subfigure}
-	\caption{(\subref{fig:chain_sigma}) tbd; (\subref{fig:quant_sigma}) tbd; (\subref{fig:acf_sigma}) tbd }
+	\caption{(\subref{fig:chain_sigma}) $\sigma$ MCMC trace plot after burn-in; (\subref{fig:quant_sigma}) $\sigma$ sample quantile plot; (\subref{fig:acf_sigma}) $\sigma$ autocorrelation function plot  }
 	\label{fig:diagnostics_sigma}
 \end{figure} 
 
@@ -623,15 +653,9 @@ Taking a 10\% sample of the full data set substantially reduced prototyping time
 		\caption{}
 		\label{fig:acf_theta}
 	\end{subfigure}
-	\caption{(\subref{fig:chain_theta}) tbd; (\subref{fig:quant_theta}) tbd; (\subref{fig:acf_theta}) tbd }
+	\caption{(\subref{fig:chain_theta}) $\theta$ MCMC trace plot after burn-in; (\subref{fig:quant_theta}) $\theta$ sample quantile plot; (\subref{fig:acf_theta}) $\theta$ autocorrelation function plot  }
 	\label{fig:diagnostics_theta}
 \end{figure} 
-
-\newpage
-\section{Likelihood Derivation}
-\label{likelihood}
-
-
 
 \newpage
 \section{Prior Derivations}
@@ -660,59 +684,15 @@ Substituting $P(k=0)=P(k \ge N)=0.025$, it follows that
 0.975 &= \sum_{k=0}^{N-1} \exp \left\{ \log \Gamma(\alpha+k) - \log \Gamma(k+1) - \log \Gamma(\alpha) + \alpha \log \left(\frac{\beta}{\beta +1} \right) + \boldsymbol{x} \log \left(\frac{1}{\beta +1} \right) \right\}
 \end{align*}
 
-\newpage
-
-\section{Coding Corrections}
-\label{coding_corrections}
-
-
-While \citet{Brown} presents several variations of the basic and parallel Metropolis algorithms that improve performance, the authors ultimately determined that the statistical model specified was incapable of capturing the underlying complexities of the plantation data. 
-After deriving the parameters for the prior on $\mu$ and simulating epidemics from a subsample of the data, it became clear that the findings reported in \citet{Brown} were based on a irreparably flawed Metropolis algorithm implementation. 
-The coding errors were replicated across all implementations and ultimately led the authors to unsupportable conclusions.
-
-Coding the MCMC algorithm as suggested in \citet{Brown} led to run times many orders of magnitude slower than the times reported. 
-Running times were prohibitively slow even after taking a 10\% sample of the full data set. 
-While this is to be expected for the R prototype, Julia benchmarks against the C programming language indicate that the performance difference cannot be fully explained by the choice of programming language. 
-Each method was coded according to standard software engineering best practices, including modular programming and test-driven development approach.  
-
-Simulating new epidemics from the posterior parameters conditioned on the infection intervals and from the posterior parameters alone led \citet{Brown} to the results in figure \ref{fig:post_sim_plot}. 
-Comparing the published simulated epidemics based on posterior samples for the number of new infections per week conditioned on the six observations with simulated epidemics based on the posterior parameters without reference to the data shows that the unconditional simulated outbreaks begin much faster than what the data supports. 
-This result is completely determined by the endemic infection rate, $\mu$. 
-Now, time to the first infection is distributed as an exponential random variable with rate $\mu$. 
-If $\mu$ were somehow overestimated, then the time to the first infection would drop substantially.
-In this case, the mismatch between the conditional and unconditional simulations in figure \ref{fig:post_sim_plot} are due to an error in the Metropolis sampler. 
-Instead of using weakly informative prior $\mu \sim \Gamma(0.7, \text{rate}=0.004)$ with mean 175 and variance $\frac{0.7}{0.004^2}=43,750$, \citep{Brown} specified $\mu \sim \Gamma(0.7, \text{scale}=0.004)$ with mean 0.0028 and variance $1.12\times10^{-5}$. 
-As a result, it is clear from figure \ref{fig:prior_mu_plot} that the posterior samples for $\mu$ only reflects the influence of the prior. 
-After reviewing the authors' source code, it was confirmed that the authors did in fact use the scale parameterization for all gamma priors in the sampler. 
-As a result, $\sigma$ is the only prior properly encoded. 
-
-\begin{figure}[H]
-\centering
-\includegraphics[height=0.36\linewidth, keepaspectratio]{figures/brown_figure_4.png}
-\caption{(left) simulated number of new infections per week conditioned on infection times and (right) simulated number of new infections per week simulated from posterior parameters published in  \citet{Brown} }
-\label{fig:post_sim_plot}
-\end{figure} 
-
-\begin{figure}[H]
-	\centering
-	\begin{subfigure}[b]{0.49\textwidth}
-		\includegraphics[width=\textwidth]{figures/brown_figure_2a.png}
-		\caption{}
-		\label{fig:brown2a}
-	\end{subfigure}
-	\hfill
-	\begin{subfigure}[b]{0.49\textwidth}
-		\includegraphics[width=\textwidth]{figures/rate_v_scale_plot.png}
-		\caption{}
-		\label{fig:welch2a}
-	\end{subfigure}
-	\caption{(\subref{fig:brown2a}) Range of $\mu$ prior, truncated posterior sample $\mu$, and posterior sample $\mu$ published in \citet{Brown}; (\subref{fig:welch2a}) Comparison of figure production error, correct gamma prior parameterization, and gamma scale parameterization }
-	\label{fig:figError}
-\end{figure} 
-
 \end{document}
 
 %Holdover stuff
+In addition to inference their for ILMs, the authors reported improved computing times as a central result.
+However, coding the basic MCMC algorithm as suggested in \citet{Brown} led to run times many orders of magnitude slower than the times reported. 
+Comparatively slow execution times were expected for R prototypes, but Julia benchmarks against the C programming language indicate that the performance difference cannot be fully explained by the choice of programming language. 
+Each method was coded according to standard software engineering best practices, including modular programming and test-driven development.  
+Neither the basic implementation nor a prototype parallel implementation were able to match the speeds reported. 
+
 \begin{table}[ht]
 \centering
 \begin{tabular}{r|rrrrr}

@@ -29,6 +29,14 @@ Diggle, P. (2006).
   disease.
 \newblock {\em Statistical Methods in Medical Research}, (15):325--336.
 
+\bibitem[Geweke, 1992]{Geweke}
+Geweke, J. (1992).
+\newblock Evaluating the accuracy of sampling-based approaches to the
+  calculation of posterior moments.
+\newblock In Bernado, J., Berger, J., Dawid, A., and Smith, A., editors, {\em
+  Proceedings of the Fourth Valencia International Meeting}, number~4, pages
+  169--188. Clarendon Press.
+
 \bibitem[Haber et~al., 1988]{Haber}
 Haber, M., Longini, J. I.~M., and Cotsonis, G. (1988).
 \newblock Models for the statistical analysis of infectious disease data.
@@ -40,7 +48,7 @@ Jewell, C., Kypraios, T., Neal, P., and Roberts, G. (2009).
 \newblock {\em Bayesian Analysis}, (4):465--496.
 
 \bibitem[Klein and Moeschberger, 1997]{Klein}
-Klein, J.~P. and Moeschberger, M.~L. (1997).
+Klein, J. and Moeschberger, M. (1997).
 \newblock {\em Survival Analysis: Techniques for Censored and Truncated Data}.
 \newblock Springer.
 
@@ -48,6 +56,11 @@ Klein, J.~P. and Moeschberger, M.~L. (1997).
 Kranz, J. (1990).
 \newblock {\em Epidemics of plant diseases}.
 \newblock Berlin; New York: Springer-Verlag.
+
+\bibitem[Martin, 2008]{Martin}
+Martin, R. (2008).
+\newblock {\em Clean Code: A Handbook of Agile Software Craftsmanship}.
+\newblock Prentice Hall.
 
 \bibitem[McKinley et~al., 2009]{McKinley}
 McKinley, T., Cook, A.~R., and Deardon, R. (2009).
@@ -66,5 +79,10 @@ O'Neill, P.~D., Balding, D.~J., Becker, N.~G., Eerola, M., and Mollison, D.
 \newblock Analysis of infectious disease data from household outbreaks by
   {M}arkov {C}hain {M}onte {C}arlo methods.
 \newblock {\em Applied Statistics}, (49):517--542.
+
+\bibitem[Roberts and Rosenthal, 2009]{Roberts}
+Roberts, G. and Rosenthal, J. (2009).
+\newblock Examples of adaptive {MCMC}.
+\newblock {\em Computational Graphical Statistics}, 18:349--367.
 
 \end{thebibliography}
